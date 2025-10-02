@@ -2783,6 +2783,66 @@ html[data-theme="dark"] .quote-provider-badge {
     padding: 0 1.5rem 1.5rem;
 }
 
+/* --- SERVICE PROVIDER REGISTRATION --- */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.checkbox-wrapper input[type="checkbox"] {
+    width: 1.25em;
+    height: 1.25em;
+    cursor: pointer;
+}
+.checkbox-wrapper label {
+    font-weight: 500;
+    cursor: pointer;
+}
+.file-preview-container img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    margin-top: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+.payout-options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-top: 1rem;
+}
+#stripe-connect-btn {
+    width: 100%;
+    max-width: 350px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background-color: #635bff; /* Stripe's brand color */
+    border-color: #635bff;
+    color: white;
+}
+#stripe-connect-btn:hover {
+    background-color: #534bff;
+    border-color: #534bff;
+}
+#stripe-connect-btn i {
+    font-size: 1.5rem;
+}
+
+
 @media (max-width: 992px) {
     .ecom-wizard-layout { grid-template-columns: 1fr; }
     .ecom-wizard-preview-panel { display: none; } /* Hide preview on smaller screens */

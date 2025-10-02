@@ -152,6 +152,44 @@ function renderServiceProviderRegisterPage() {
                      <p class="error-text hidden" id="regions-error"></p>
                 </div>
 
+                <div class="form-section">
+                    <h3>Payout Information</h3>
+                    <p class="helper-text">How you'll get paid. Securely provide your payout details to receive funds from your sales.</p>
+                    <div class="payout-options">
+                        <button type="button" id="stripe-connect-btn" class="main-submit-btn">
+                            <i class="fa-brands fa-stripe-s"></i> Connect with Stripe (Recommended)
+                        </button>
+                        <p class="helper-text" style="text-align: center; margin: 0.5rem 0;">or</p>
+                        <button type="button" id="manual-payout-btn" class="link-btn">Enter Bank Details Manually</button>
+                    </div>
+                    <div id="manual-payout-fields" class="hidden" style="margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                        <div class="two-column" style="gap: 2rem;">
+                            <div class="input-wrapper">
+                                <label for="account_holder_name">Account Holder Name</label>
+                                <input id="account_holder_name" name="account_holder_name" placeholder="John Doe" />
+                                <p class="error-text hidden"></p>
+                            </div>
+                            <div class="input-wrapper">
+                                <label for="bank_name">Bank Name</label>
+                                <input id="bank_name" name="bank_name" placeholder="Global Bank Inc." />
+                                <p class="error-text hidden"></p>
+                            </div>
+                        </div>
+                        <div class="two-column" style="gap: 2rem;">
+                             <div class="input-wrapper">
+                                <label for="iban">IBAN</label>
+                                <input id="iban" name="iban" placeholder="DE89 3704 0044 0532 0130 00" />
+                                <p class="error-text hidden"></p>
+                            </div>
+                            <div class="input-wrapper">
+                                <label for="swift_bic">SWIFT / BIC Code</label>
+                                <input id="swift_bic" name="swift_bic" placeholder="DEUTDEFF" />
+                                <p class="error-text hidden"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-actions">
                     <button type="submit" class="main-submit-btn">Submit Registration</button>
                 </div>
@@ -191,7 +229,14 @@ function validateField(input: HTMLInputElement): boolean {
     } else if (input.type === 'url' && input.value.trim() && !/^https?:\/\/.+\..+/.test(input.value)) {
         valid = false;
         message = 'Please enter a valid URL (e.g., https://example.com).';
+    } else if (input.id === 'iban' && input.value.trim() && !/^[A-Z]{2}[0-9]{2}[A-Z0-9]{1,30}$/.test(input.value.replace(/\s/g, ''))) {
+        valid = false;
+        message = 'Please enter a valid IBAN format.';
+    } else if (input.id === 'swift_bic' && input.value.trim() && !/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(input.value)) {
+        valid = false;
+        message = 'Please enter a valid SWIFT/BIC code.';
     }
+
 
     if (errorEl && errorEl.classList.contains('error-text')) {
         errorEl.textContent = message;
@@ -222,7 +267,6 @@ function validateFile(input: HTMLInputElement, maxSizeMB: number, allowedTypes: 
             valid = false;
             message = `File size must not exceed ${maxSizeMB}MB.`;
         } else if (!allowedTypes.includes(file.type)) {
-            valid = false;
             const friendlyTypes = allowedTypes.map(t => t.split('/')[1].toUpperCase()).join(', ');
             message = `Invalid file type. Please upload one of: ${friendlyTypes}.`;
         }
@@ -258,6 +302,18 @@ async function handleFormSubmit(e: Event) {
     if (!validateCheckboxGroup('provider_type', 'provider-type-error')) isFormValid = false;
     if (!validateCheckboxGroup('services', 'services-error')) isFormValid = false;
     if (!validateCheckboxGroup('coverage_regions', 'regions-error')) isFormValid = false;
+
+    const manualPayoutFields = document.getElementById('manual-payout-fields');
+    if (manualPayoutFields && !manualPayoutFields.classList.contains('hidden')) {
+        form.querySelectorAll<HTMLInputElement>('#manual-payout-fields input').forEach(input => {
+            // Only validate if user has typed something, since this section is optional
+            if (input.value.trim() !== '') {
+                 if (!validateField(input)) {
+                    isFormValid = false;
+                }
+            }
+        });
+    }
     
     if (!isFormValid) {
         showToast('Please correct the errors in the form.', 'error');
@@ -266,6 +322,15 @@ async function handleFormSubmit(e: Event) {
 
     toggleLoading(true, "Submitting registration...");
     
+    // In a real app, you would get the values and send to backend.
+    const payoutData = {
+        accountHolder: (document.getElementById('account_holder_name') as HTMLInputElement).value,
+        bankName: (document.getElementById('bank_name') as HTMLInputElement).value,
+        iban: (document.getElementById('iban') as HTMLInputElement).value,
+        swiftBic: (document.getElementById('swift_bic') as HTMLInputElement).value,
+    };
+    console.log("Captured Payout Data (demo):", payoutData);
+
     showToast("This is a demo. Form submission is not connected to a live database.", "info");
     
     setTimeout(() => {
@@ -276,6 +341,8 @@ async function handleFormSubmit(e: Event) {
         if (logoPreviewContainer) logoPreviewContainer.innerHTML = '';
         const docFilenameDisplay = document.getElementById('document-filename-display');
         if (docFilenameDisplay) docFilenameDisplay.textContent = '';
+        const manualPayoutFields = document.getElementById('manual-payout-fields');
+        if (manualPayoutFields) manualPayoutFields.classList.add('hidden');
     }, 1500);
 }
 
@@ -314,6 +381,21 @@ function attachEventListeners() {
             docFilenameDisplay.textContent = `Selected: ${file.name}`;
         } else {
             docFilenameDisplay.textContent = '';
+        }
+    });
+
+    const stripeConnectBtn = document.getElementById('stripe-connect-btn');
+    const manualPayoutBtn = document.getElementById('manual-payout-btn');
+    const manualPayoutFields = document.getElementById('manual-payout-fields');
+
+    stripeConnectBtn?.addEventListener('click', () => {
+        showToast('In a real app, this would redirect to Stripe for secure onboarding.', 'info');
+        if (manualPayoutFields) manualPayoutFields.classList.add('hidden');
+    });
+
+    manualPayoutBtn?.addEventListener('click', () => {
+        if (manualPayoutFields) {
+            manualPayoutFields.classList.toggle('hidden');
         }
     });
 }

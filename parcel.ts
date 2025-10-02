@@ -852,6 +852,7 @@ function initializeProgressiveForm(containerId: string) {
 // FIX: Renamed `initializeParcelService` to `startParcel` to align with the naming convention of other service modules and resolve the export error.
 export function startParcel() {
     renderParcelPage();
+    switchPage('parcel');
     
     // If state has been pre-filled from landing page, populate the form
     if (State.parcelOrigin || State.parcelDestination) {

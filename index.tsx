@@ -5,7 +5,7 @@ import { switchPage, showToast, showPrelaunchModal, closePrelaunchModal, toggleL
 import { Page, Service, State, setState, Deal } from './state';
 // FIX: Removed unused import for initializeApi as it is no longer exported.
 import { initializePaymentPage } from './payment';
-import { initializeLocaleSwitcher, countryCodeToFlag } from './LocaleSwitcher';
+import { initializeLocaleSwitcher } from './LocaleSwitcher';
 import { initializeAuth, handleLogout, updateUIForAuthState } from './auth';
 import { initializeStaticPages } from './static_pages';
 import { initializeDashboard } from './dashboard';

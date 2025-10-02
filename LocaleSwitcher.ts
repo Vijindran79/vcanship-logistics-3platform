@@ -51,6 +51,7 @@ const elements = {
 
 // --- UTILITIES ---
 
+// FIX: Export 'countryCodeToFlag' to allow other modules to use it.
 export function countryCodeToFlag(isoCode: string): string {
   if (!isoCode || isoCode.length !== 2 || !/^[A-Z]{2}$/.test(isoCode.toUpperCase())) {
     return '🏳️';

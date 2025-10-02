@@ -193,9 +193,13 @@ export function initializeAuth() {
     DOMElements.loginForm.addEventListener('submit', handleLogin);
     DOMElements.signupForm.addEventListener('submit', handleSignup);
 
-    // Social Logins
-    DOMElements.googleLoginBtn?.addEventListener('click', () => handleSocialLogin('Google'));
-    DOMElements.appleLoginBtn?.addEventListener('click', () => handleSocialLogin('Apple'));
+    // Social Logins - Attach to all buttons with these classes
+    document.querySelectorAll('.google-login-btn').forEach(button => {
+        button.addEventListener('click', () => handleSocialLogin('Google'));
+    });
+    document.querySelectorAll('.apple-login-btn').forEach(button => {
+        button.addEventListener('click', () => handleSocialLogin('Apple'));
+    });
 
     // Password visibility toggles
     const passwordToggles = document.querySelectorAll('.password-toggle');
