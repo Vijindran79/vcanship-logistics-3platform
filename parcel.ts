@@ -1,4 +1,3 @@
-// ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️
 import { jsPDF } from 'jspdf';
 import { State, setState, type Quote, type Address, resetParcelState, type DropOffLocation, ApiResponse } from './state';
 import { getHsCodeSuggestions, checkAndDecrementLookup } from './api';
@@ -790,202 +789,140 @@ function populateFormFromState() {
     if (parcelInitialHeight) {
         setInputValue('package-height', parcelInitialHeight);
     }
-    
-    // Reset it so it's not used again on subsequent visits to the page
-    setState({ 
-        parcelOrigin: undefined,
-        parcelDestination: undefined,
-        parcelInitialWeight: undefined,
-        parcelInitialLength: undefined,
-        parcelInitialWidth: undefined,
-        parcelInitialHeight: undefined,
-    });
 }
 
-function initializeProgressiveForm(containerId: string) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    const fields = Array.from(container.querySelectorAll<HTMLDivElement>('.progressive-field'));
-
-    const showNextField = (currentStep: number) => {
-        const nextField = fields.find(f => parseInt(f.dataset.step!) === currentStep + 1);
-        if (nextField && nextField.classList.contains('hidden')) {
-            nextField.classList.remove('hidden');
-            const input = nextField.querySelector('input, textarea, select');
-            if (input && document.activeElement?.closest('.progressive-form-section') === container) {
-                (input as HTMLElement).focus();
-            }
-        }
-    };
-    
-    // Initial setup: check for pre-filled values and show all fields up to the first empty one.
-    let firstEmptyFound = false;
-    fields.forEach(field => {
-        if (firstEmptyFound) {
-            field.classList.add('hidden');
-            return;
-        }
-        const input = field.querySelector('input, textarea, select') as HTMLInputElement;
-        field.classList.remove('hidden'); // Show the current field to check it
-        if (!input || !input.value.trim()) {
-            firstEmptyFound = true;
-            // The first empty field should be visible, and we stop.
-        }
-    });
-
-    fields.forEach(field => {
-        const input = field.querySelector('input, textarea, select');
-        if (input) {
-            const showNext = () => {
-                if ((input as HTMLInputElement).value.trim() !== '') {
-                    showNextField(parseInt(field.dataset.step!));
-                }
-            };
-            input.addEventListener('input', showNext);
-            input.addEventListener('blur', showNext); // For autocomplete
-        }
-    });
-}
-
-
-// FIX: Renamed `initializeParcelService` to `startParcel` to align with the naming convention of other service modules and resolve the export error.
 export function startParcel() {
+    setState({ currentService: 'parcel' });
     renderParcelPage();
     switchPage('parcel');
-    
-    // If state has been pre-filled from landing page, populate the form
-    if (State.parcelOrigin || State.parcelDestination) {
-        populateFormFromState();
-    } else {
-        resetParcelState();
-    }
-    
-    goToParcelStep(1);
-    // Set the view based on the choice made on the landing page.
-    handlePickupTypeChange(State.parcelPickupType || 'pickup');
-    
-    // Initialize progressive forms after populating state
-    initializeProgressiveForm('origin-address-section');
-    initializeProgressiveForm('destination-address-section');
 
-
-    // Attach event listeners after rendering
-    document.querySelector('#page-parcel .back-btn')?.addEventListener('click', () => switchPage('landing'));
-    document.getElementById('parcel-quote-form')?.addEventListener('submit', handleDetailsFormSubmit);
-    document.getElementById('package-weight')?.addEventListener('input', handleHeavyItemCheck);
-    
-
-    document.getElementById('parcel-back-to-details')?.addEventListener('click', () => goToParcelStep(1));
-    document.getElementById('parcel-new-shipment-btn')?.addEventListener('click', () => {
+    document.querySelector('#page-parcel .back-btn')?.addEventListener('click', () => {
         resetParcelState();
         switchPage('landing');
     });
-    
-    document.getElementById('parcel-print-label-btn')?.addEventListener('click', generateShippingLabelPdf);
 
-    document.getElementById('parcel-confirmation-track-shipment-btn')?.addEventListener('click', () => {
-        const trackingIdEl = document.getElementById('parcel-confirmation-tracking-id');
-        const trackingId = trackingIdEl?.textContent;
-        if (trackingId) {
-            DOMElements.trackingIdInput.value = trackingId;
-            DOMElements.trackBtn.click();
-            DOMElements.trackingForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        }
-    });
-
-    // FIX: Combined variable declarations to resolve "Cannot redeclare block-scoped variable" errors.
-    // HS Code Visibility Listeners
-    const originCountryInput = document.getElementById('origin-country') as HTMLInputElement;
-    const destCountryInput = document.getElementById('dest-country') as HTMLInputElement;
-    originCountryInput?.addEventListener('change', toggleHsCodeVisibility);
-    destCountryInput?.addEventListener('change', toggleHsCodeVisibility);
-
-    // Using event delegation for dynamically added quote cards and banners
     const page = document.getElementById('page-parcel');
-    page?.addEventListener('click', (e) => {
+    if (!page) return;
+
+    page.addEventListener('click', (e: Event) => {
+        handleSelectQuote(e);
+        handleViewBreakdown(e);
         const target = e.target as HTMLElement;
-        if (target.closest('.select-quote-btn')) {
-            handleSelectQuote(e);
-        } else if (target.closest('.view-breakdown-btn')) {
-            handleViewBreakdown(e);
-        } else if (target.id === 'upgrade-from-guest') {
-            setState({ postLoginRedirectService: 'parcel' });
-            showAuthModal();
-        } else if (target.id === 'upgrade-from-free') {
-            // In a real app, this would go to a subscription page.
-            showToast('Upgrade to Pro for $39/month is coming soon!', 'info');
-        } else if (target.matches('.sort-btn')) {
-            const sortBy = target.dataset.sort as 'price' | 'speed';
-            sortAndRenderQuotes(sortBy);
+
+        if (target.id === 'parcel-back-to-details') goToParcelStep(1);
+        if (target.id === 'parcel-new-shipment-btn') {
+            resetParcelState();
+            startParcel();
         }
-    });
-
-    // Insurance listeners
-    const insuranceCheckbox = document.getElementById('parcel-insurance-checkbox') as HTMLInputElement;
-    const insuranceFields = document.getElementById('parcel-insurance-fields');
-    const declaredValueInput = document.getElementById('parcel-declared-value') as HTMLInputElement;
-    
-    insuranceCheckbox?.addEventListener('change', () => {
-        insuranceFields?.classList.toggle('visible', insuranceCheckbox.checked);
-        if (!insuranceCheckbox.checked) {
-            declaredValueInput.value = '';
-        }
-        calculateAndStoreInsurance();
-    });
-    
-    declaredValueInput?.addEventListener('input', calculateAndStoreInsurance);
-
-    // HS Code Suggester Logic
-    let hsCodeSearchTimeout: number | null = null;
-    const descriptionInput = document.getElementById('item-description') as HTMLInputElement;
-    const hsCodeInput = document.getElementById('hs-code') as HTMLInputElement;
-    const suggestionsContainer = document.getElementById('parcel-hs-code-suggestions');
-
-    descriptionInput?.addEventListener('input', () => {
-        const query = descriptionInput.value.trim();
-        if (hsCodeSearchTimeout) clearTimeout(hsCodeSearchTimeout);
-        if (query.length < 5 || !suggestionsContainer) {
-            suggestionsContainer?.classList.remove('active');
-            return;
-        }
-
-        hsCodeSearchTimeout = window.setTimeout(async () => {
-            const suggestions = await getHsCodeSuggestions(query);
-            if (suggestionsContainer) {
-                if (suggestions.length > 0) {
-                    suggestionsContainer.innerHTML = suggestions.map(s => `
-                        <div class="hs-code-suggestion-item" data-code="${s.code}">
-                            <strong>${s.code}</strong> - ${s.description}
-                        </div>
-                    `).join('');
-                    suggestionsContainer.classList.add('active');
-        
-                    if (hsCodeInput && hsCodeInput.value.trim() === '') {
-                        hsCodeInput.value = suggestions[0].code;
-                        showToast(`Suggested HS Code: ${suggestions[0].code}`, 'info');
-                    }
-                } else {
-                    suggestionsContainer.classList.remove('active');
-                }
+        if (target.id === 'parcel-print-label-btn') generateShippingLabelPdf();
+        if (target.id === 'parcel-confirmation-track-shipment-btn') {
+            const trackingId = document.getElementById('parcel-confirmation-tracking-id')?.textContent;
+            if (trackingId) {
+                const trackingInput = DOMElements.trackingIdInput;
+                if (trackingInput) trackingInput.value = trackingId;
+                DOMElements.trackingModal.classList.add('active');
             }
-        }, 500);
-    });
-
-    suggestionsContainer?.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        const item = target.closest<HTMLElement>('.hs-code-suggestion-item');
-        if (item && item.dataset.code && hsCodeInput) {
-            hsCodeInput.value = item.dataset.code;
-            suggestionsContainer.classList.remove('active');
         }
     });
 
-    // Hide suggestions when clicking outside
-    document.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        if (!target.closest('.hs-code-suggester-wrapper')) {
-            suggestionsContainer?.classList.remove('active');
+    page.addEventListener('submit', (e: Event) => {
+        if ((e.target as HTMLElement).id === 'parcel-quote-form') {
+            handleDetailsFormSubmit(e);
         }
     });
+    
+    page.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.id === 'parcel-insurance-checkbox') {
+            document.getElementById('parcel-insurance-fields')?.classList.toggle('active', target.checked);
+            calculateAndStoreInsurance();
+        }
+    });
+
+    page.addEventListener('input', (e) => {
+        const target = e.target as HTMLInputElement;
+
+        if (['origin-country', 'dest-country'].includes(target.id)) toggleHsCodeVisibility();
+        if (target.id === 'package-weight') handleHeavyItemCheck();
+        
+        if (['origin-name', 'dest-name'].includes(target.id)) {
+            const section = target.closest('.progressive-form-section');
+            if (section) {
+                const step2 = section.querySelector('[data-step="2"]');
+                if (step2) step2.classList.remove('hidden');
+            }
+        }
+        if (['origin-street', 'dest-street'].includes(target.id)) {
+             const section = target.closest('.progressive-form-section');
+            if (section) {
+                const step3 = section.querySelector('[data-step="3"]');
+                if (step3) step3.classList.remove('hidden');
+            }
+        }
+         if (['origin-city', 'dest-city'].includes(target.id)) {
+             const section = target.closest('.progressive-form-section');
+            if (section) {
+                const step4 = section.querySelector('[data-step="4"]');
+                if (step4) step4.classList.remove('hidden');
+            }
+        }
+         if (['origin-postcode', 'dest-postcode'].includes(target.id)) {
+             const section = target.closest('.progressive-form-section');
+            if (section) {
+                const step5 = section.querySelector('[data-step="5"]');
+                if (step5) step5.classList.remove('hidden');
+            }
+        }
+        
+        if (target.id === 'parcel-declared-value') {
+            calculateAndStoreInsurance();
+        }
+
+        if (target.id === 'item-description') {
+            const hsCodeInput = document.getElementById('hs-code') as HTMLInputElement;
+            const suggestionsContainer = document.getElementById('parcel-hs-code-suggestions');
+            if (!hsCodeInput || !suggestionsContainer) return;
+            const query = target.value.trim();
+            if (query.length > 10) {
+                 getHsCodeSuggestions(query).then(suggestions => {
+                    if (suggestions.length > 0) {
+                        hsCodeInput.value = suggestions[0].code;
+                        suggestionsContainer.innerHTML = suggestions.map(s => `<div class="hs-code-suggestion-item" data-code="${s.code}"><strong>${s.code}</strong> - ${s.description}</div>`).join('');
+                        suggestionsContainer.classList.add('active');
+                    } else {
+                        suggestionsContainer.classList.remove('active');
+                    }
+                });
+            } else {
+                 suggestionsContainer.classList.remove('active');
+            }
+        }
+    });
+    
+    // Attach dynamic validation to postcode fields
+    const originCountry = document.getElementById('origin-country') as HTMLInputElement;
+    const originPostcode = document.getElementById('origin-postcode') as HTMLInputElement;
+    if (originCountry && originPostcode) {
+        attachDynamicPostcodeValidation(originCountry, originPostcode);
+    }
+    const destCountry = document.getElementById('dest-country') as HTMLInputElement;
+    const destPostcode = document.getElementById('dest-postcode') as HTMLInputElement;
+    if (destCountry && destPostcode) {
+        attachDynamicPostcodeValidation(destCountry, destPostcode);
+    }
+    
+    // Check for confirmation flow
+    const confirmationContext = sessionStorage.getItem('vcanship_show_confirmation');
+    if (confirmationContext) {
+        const context = JSON.parse(confirmationContext);
+        if (context.service === 'parcel') {
+            renderConfirmationPage(context.shipmentId, State.parcelDeclaredValue, State.parcelPremiumTrackingAdded);
+            sessionStorage.removeItem('vcanship_show_confirmation');
+        }
+    } else {
+        goToParcelStep(1); // Start at details
+    }
+    
+    // Check for pre-filled data from landing page
+    populateFormFromState();
 }

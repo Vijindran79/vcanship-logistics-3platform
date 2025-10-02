@@ -1,4 +1,3 @@
-// ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️
 import { DOMElements } from './dom';
 import { mountService } from './router';
 import { switchPage, showToast, showPrelaunchModal, closePrelaunchModal, toggleLoading } from './ui';

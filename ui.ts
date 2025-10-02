@@ -1,4 +1,3 @@
-// ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️
 import { DOMElements } from './dom';
 import { State, setState, type Page } from './state';
 

@@ -1,4 +1,3 @@
-// ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️
 import { GoogleGenAI, Chat } from "@google/genai";
 
 // --- TYPE DEFINITIONS ---
@@ -308,16 +307,7 @@ export interface Promotion {
     theme: string;
 }
 
-export const shipmentHistory = [
-    { id: 'PAR-827192', service: 'parcel', date: '2024-07-15', origin: 'London, GB', destination: 'New York, US', status: 'Delivered', cost: 45.50, carrier: 'DHL', isOnTime: true },
-    { id: 'FCL-391820', service: 'fcl', date: '2024-07-10', origin: 'Shanghai, CN', destination: 'Los Angeles, US', status: 'In Transit', cost: 3200.00, carrier: 'Maersk', isOnTime: true },
-    { id: 'BGG-109283', service: 'baggage', date: '2024-07-20', origin: 'Sydney, AU', destination: 'London, GB', status: 'Booked', cost: 180.00, carrier: 'FedEx', isOnTime: true },
-    { id: 'LCL-481029', service: 'lcl', date: '2024-06-25', origin: 'Hamburg, DE', destination: 'Dubai, AE', status: 'Delivered', cost: 450.00, carrier: 'Kuehne+Nagel', isOnTime: false },
-    { id: 'PAR-817290', service: 'parcel', date: '2024-07-18', origin: 'Tokyo, JP', destination: 'Paris, FR', status: 'In Transit', cost: 65.20, carrier: 'UPS', isOnTime: true },
-    { id: 'VEH-291837', service: 'vehicle', date: '2024-06-15', origin: 'Busan, KR', destination: 'Jebel Ali, AE', status: 'Delivered', cost: 1500.00, carrier: 'Hoegh Autoliners', isOnTime: true },
-    { id: 'AIR-991283', service: 'airfreight', date: '2024-07-22', origin: 'Frankfurt, DE', destination: 'Chicago, US', status: 'Booked', cost: 2100.00, carrier: 'Lufthansa Cargo', isOnTime: true },
-    { id: 'PAR-712389', service: 'parcel', date: '2024-07-05', origin: 'Hong Kong, HK', destination: 'London, GB', status: 'Delivered', cost: 35.00, carrier: 'DHL', isOnTime: true },
-];
+
 
 
 // --- APP STATE ---

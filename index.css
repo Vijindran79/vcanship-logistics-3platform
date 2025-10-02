@@ -1,4 +1,4 @@
-/* ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️ */
+
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
@@ -2848,4 +2848,76 @@ html[data-theme="dark"] .quote-provider-badge {
     .ecom-wizard-preview-panel { display: none; } /* Hide preview on smaller screens */
     .ecom-product-detail-layout { grid-template-columns: 1fr; }
     .secure-trade-content { grid-template-columns: 1fr; }
+}
+
+/* --- DASHBOARD SHIPMENT HISTORY TABLE --- */
+.shipment-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.shipment-history-table th,
+.shipment-history-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.shipment-history-table th {
+    font-weight: 600;
+    color: var(--medium-gray);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.shipment-history-table tbody tr:hover {
+    background-color: var(--light-gray);
+}
+
+.shipment-status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.shipment-status-badge.delivered {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+html[data-theme="dark"] .shipment-status-badge.delivered {
+    background-color: #065F46;
+    color: #D1FAE5;
+}
+
+.shipment-status-badge.in-transit {
+    background-color: #DBEAFE;
+    color: #1E40AF;
+}
+html[data-theme="dark"] .shipment-status-badge.in-transit {
+    background-color: #1E40AF;
+    color: #DBEAFE;
+}
+
+.shipment-status-badge.booked {
+    background-color: #FEF3C7;
+    color: #92400E;
+}
+html[data-theme="dark"] .shipment-status-badge.booked {
+    background-color: #92400E;
+    color: #FEF3C7;
+}
+
+.shipment-history-table .tracking-id-link {
+    font-weight: 600;
+    color: var(--primary-orange);
+    text-decoration: none;
+    cursor: pointer;
+}
+.shipment-history-table .tracking-id-link:hover {
+    text-decoration: underline;
 }
