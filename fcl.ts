@@ -7,6 +7,8 @@ import { getHsCodeSuggestions } from './api';
 import { MARKUP_CONFIG } from './pricing';
 import { checkAndDecrementLookup } from './api';
 import { Type } from '@google/genai';
+import { getFCLQuotes, displayAPIUsage } from './searates-api';
+import { captureCustomerInfo, submitQuoteRequest } from './email-capture';
 
 
 // --- MODULE STATE ---
@@ -309,82 +311,175 @@ async function handleFclFormSubmit(e: Event) {
     setState({ fclDetails: details });
 
     try {
-        if (!State.api) throw new Error("API not initialized");
-        const containerSummary = details.containers.map(c => `${c.quantity} x ${c.type}`).join(', ');
-        const prompt = `Act as a logistics pricing expert for FCL sea freight. Provide a realistic estimated quote and a compliance checklist.
-        Route: From ${pickupPort || pickupAddress?.country} to ${deliveryPort || deliveryAddress?.country}.
-        Containers: ${containerSummary}.
-        Cargo: ${details.cargoDescription}.
-        Currency: ${State.currentCurrency.code}.
+        // Display API usage for transparency
+        await displayAPIUsage();
         
-        The response should be a JSON object with two keys: "quote" and "complianceReport".
-        The "quote" object should have carrierName (e.g., Maersk, MSC), estimatedTransitTime, and totalCost. Apply a ${MARKUP_CONFIG.fcl.standard * 100}% markup to a realistic base cost to calculate the totalCost.
-        The "complianceReport" should have status, summary, and a list of requirements (each with title and description, e.g., Commercial Invoice, Packing List).`;
+        // Prepare origin and destination for API call
+        const origin = {
+            country: pickupAddress?.country || 'China',
+            city: pickupPort || 'Shanghai'
+        };
+        const destination = {
+            country: deliveryAddress?.country || 'United States',
+            city: deliveryPort || 'Los Angeles'
+        };
         
-        const responseSchema = {
-            type: Type.OBJECT,
-            properties: {
-                quote: {
-                    type: Type.OBJECT,
-                    properties: {
-                        carrierName: { type: Type.STRING },
-                        estimatedTransitTime: { type: Type.STRING },
-                        totalCost: { type: Type.NUMBER }
-                    }
-                },
-                complianceReport: {
-                    type: Type.OBJECT,
-                    properties: {
-                        status: { type: Type.STRING },
-                        summary: { type: Type.STRING },
-                        requirements: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    title: { type: Type.STRING },
-                                    description: { type: Type.STRING }
-                                }
-                            }
-                        }
-                    }
+        // Convert containers to SeaRates format
+        const containersForApi = details.containers.map(c => ({
+            type: c.type as '20GP' | '40GP' | '40HC' | '45HC',
+            quantity: c.quantity
+        }));
+        
+        let quoteWithBreakdown: Quote;
+        let isRealQuote = false;
+        
+        // Try SeaRates API first
+        try {
+            const searatesQuotes = await getFCLQuotes(origin, destination, containersForApi);
+            
+            if (searatesQuotes && searatesQuotes.length > 0) {
+                // Use the first (best) quote from SeaRates
+                const bestQuote = searatesQuotes[0];
+                const baseCost = bestQuote.price;
+                const markupCost = baseCost * (1 + MARKUP_CONFIG.fcl.standard);
+                
+                quoteWithBreakdown = {
+                    carrierName: bestQuote.carrier,
+                    estimatedTransitTime: bestQuote.transitTime,
+                    totalCost: markupCost,
+                    carrierType: "Ocean Carrier",
+                    chargeableWeight: 0,
+                    chargeableWeightUnit: 'N/A',
+                    weightBasis: 'Per Container',
+                    isSpecialOffer: false,
+                    costBreakdown: {
+                        baseShippingCost: baseCost,
+                        fuelSurcharge: 0,
+                        estimatedCustomsAndTaxes: 0,
+                        optionalInsuranceCost: 0,
+                        ourServiceFee: markupCost - baseCost
+                    },
+                    serviceProvider: `SeaRates (${bestQuote.carrier})`
+                };
+                
+                isRealQuote = true;
+                showToast('Real-time carrier quote loaded successfully!', 'success', 3000);
+            } else {
+                throw new Error('No quotes returned from SeaRates API');
+            }
+            
+        } catch (apiError: any) {
+            console.log('SeaRates API unavailable, falling back to AI estimate:', apiError.message);
+            
+            // Fallback to Google Gemini AI
+            if (!State.api) throw new Error("API not initialized");
+            
+            const containerSummary = details.containers.map(c => `${c.quantity} x ${c.type}`).join(', ');
+            const prompt = `Act as a logistics pricing expert for FCL sea freight. Provide a realistic estimated quote.
+            Route: From ${pickupPort || pickupAddress?.country} to ${deliveryPort || deliveryAddress?.country}.
+            Containers: ${containerSummary}.
+            Cargo: ${details.cargoDescription}.
+            Currency: ${State.currentCurrency.code}.
+            
+            Provide a JSON object with: carrierName (e.g., Maersk, MSC), estimatedTransitTime (e.g., "25-30 days"), and totalCost (realistic market rate with ${MARKUP_CONFIG.fcl.standard * 100}% markup included).`;
+            
+            const responseSchema = {
+                type: Type.OBJECT,
+                properties: {
+                    carrierName: { type: Type.STRING },
+                    estimatedTransitTime: { type: Type.STRING },
+                    totalCost: { type: Type.NUMBER }
                 }
-            }
-        };
+            };
 
-        const result = await State.api.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: responseSchema
-            }
-        });
+            const result = await State.api.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: prompt,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: responseSchema
+                }
+            });
 
-        const parsedResult = JSON.parse(result.text);
-
-        const quoteWithBreakdown: Quote = {
-            ...parsedResult.quote,
-            carrierType: "Ocean Carrier",
-            chargeableWeight: 0,
-            chargeableWeightUnit: 'N/A',
-            weightBasis: 'Per Container',
-            isSpecialOffer: false,
-            costBreakdown: {
-                baseShippingCost: parsedResult.quote.totalCost / (1 + MARKUP_CONFIG.fcl.standard),
-                fuelSurcharge: 0,
-                estimatedCustomsAndTaxes: 0,
-                optionalInsuranceCost: 0,
-                ourServiceFee: parsedResult.quote.totalCost - (parsedResult.quote.totalCost / (1 + MARKUP_CONFIG.fcl.standard))
-            },
-            serviceProvider: 'Vcanship AI'
-        };
-
-        const docs: ComplianceDoc[] = parsedResult.complianceReport.requirements.map((r: any) => ({ ...r, id: `doc-${r.title.replace(/\s/g, '-')}`, status: 'pending', file: null, required: true }));
+            const parsedResult = JSON.parse(result.text);
+            
+            quoteWithBreakdown = {
+                ...parsedResult,
+                carrierType: "Ocean Carrier",
+                chargeableWeight: 0,
+                chargeableWeightUnit: 'N/A',
+                weightBasis: 'Per Container',
+                isSpecialOffer: false,
+                costBreakdown: {
+                    baseShippingCost: parsedResult.totalCost / (1 + MARKUP_CONFIG.fcl.standard),
+                    fuelSurcharge: 0,
+                    estimatedCustomsAndTaxes: 0,
+                    optionalInsuranceCost: 0,
+                    ourServiceFee: parsedResult.totalCost - (parsedResult.totalCost / (1 + MARKUP_CONFIG.fcl.standard))
+                },
+                serviceProvider: 'Vcanship AI Estimate'
+            };
+            
+            showToast('AI-estimated quote generated. We\'ll email confirmed rates.', 'info', 4000);
+        }
         
-        setState({ fclQuote: quoteWithBreakdown, fclComplianceDocs: docs });
+        // Generate compliance checklist (standard for all FCL shipments)
+        const standardDocs: ComplianceDoc[] = [
+            {
+                id: 'doc-commercial-invoice',
+                title: 'Commercial Invoice',
+                description: 'Detailed invoice showing goods value, quantities, and buyer/seller information.',
+                status: 'pending',
+                file: null,
+                required: true
+            },
+            {
+                id: 'doc-packing-list',
+                title: 'Packing List',
+                description: 'Itemized list of container contents with weights and dimensions.',
+                status: 'pending',
+                file: null,
+                required: true
+            },
+            {
+                id: 'doc-bill-of-lading',
+                title: 'Bill of Lading',
+                description: 'Contract between shipper and carrier. Will be issued by the carrier.',
+                status: 'pending',
+                file: null,
+                required: true
+            },
+            {
+                id: 'doc-certificate-of-origin',
+                title: 'Certificate of Origin',
+                description: 'Certifies the country where goods were manufactured.',
+                status: 'pending',
+                file: null,
+                required: false
+            }
+        ];
+        
+        // Capture customer info if using AI fallback
+        if (!isRealQuote) {
+            try {
+                const customerInfo = await captureCustomerInfo('FCL');
+                if (customerInfo) {
+                    await submitQuoteRequest({
+                        serviceType: 'FCL',
+                        customerInfo,
+                        shipmentDetails: details,
+                        aiEstimate: quoteWithBreakdown
+                    });
+                }
+            } catch (captureError) {
+                console.log('Customer info capture skipped:', captureError);
+            }
+        }
+        
+        setState({ fclQuote: quoteWithBreakdown, fclComplianceDocs: standardDocs });
         renderQuoteAndComplianceStep();
         goToFclStep(2);
+        
     } catch (error) {
         console.error("FCL quote error:", error);
         showToast("Could not generate an estimate. Please try again.", "error");
