@@ -3,6 +3,8 @@ import { State, setState, resetLclState, LclCargoItem } from './state';
 import { switchPage, updateProgressBar, showToast, toggleLoading } from './ui';
 import { MARKUP_CONFIG } from './pricing';
 import { getHsCodeSuggestions } from './api';
+import { getLCLQuotes, displayAPIUsage } from './searates-api';
+import { captureCustomerInfo, submitQuoteRequest } from './email-capture';
 
 let cargoItems: LclCargoItem[] = [];
 
@@ -180,38 +182,82 @@ async function handleLclFormSubmit(e: Event) {
     const hsCode = (document.getElementById('lcl-hs-code') as HTMLInputElement).value;
     const cargoSummary = cargoItems.map(c => `${c.pieces}pcs, ${c.length}x${c.width}x${c.height}cm, ${c.weight}kg`).join('; ');
     const totalCbm = cargoItems.reduce((acc, item) => acc + (item.length * item.width * item.height) / 1000000 * item.pieces, 0);
-
-    const prompt = `
-        Act as a logistics pricing expert for LCL (Less than Container Load) sea freight.
-        - Origin CFS: ${origin}
-        - Destination CFS: ${destination}
-        - Total Volume: ${totalCbm.toFixed(3)} CBM
-        - Cargo description: ${cargoDescription}
-        - HS Code: ${hsCode || 'Not provided'}
-        - Cargo details: ${cargoSummary}
-        - Currency: ${State.currentCurrency.code}
-
-        Provide a single estimated base cost for the freight as a number. Do not add any other text or formatting.
-    `;
+    const totalWeight = cargoItems.reduce((acc, item) => acc + item.weight * item.pieces, 0);
 
     try {
-        if (!State.api) throw new Error("AI API not initialized.");
-        const response = await State.api.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: prompt,
-        });
+        // Display API usage
+        await displayAPIUsage();
         
-        const baseCost = parseFloat(response.text);
-        if (isNaN(baseCost)) throw new Error("Invalid AI response.");
+        // Parse origin and destination for API call
+        const [originCity, originCountry] = origin.split(',').map(s => s.trim());
+        const [destCity, destCountry] = destination.split(',').map(s => s.trim());
         
-        const markup = MARKUP_CONFIG.lcl.standard;
-        const finalPrice = baseCost * (1 + markup);
+        let finalPrice: number;
+        let carrierInfo = '';
+        let isRealQuote = false;
+        
+        // Try SeaRates API first
+        try {
+            const quotes = await getLCLQuotes(
+                { country: originCountry || origin, city: originCity || origin },
+                { country: destCountry || destination, city: destCity || destination },
+                { weight: totalWeight, volume: totalCbm }
+            );
+            
+            if (quotes && quotes.length > 0) {
+                const bestQuote = quotes[0];
+                const baseCost = bestQuote.price;
+                const markup = MARKUP_CONFIG.lcl.standard;
+                finalPrice = baseCost * (1 + markup);
+                carrierInfo = `<div class="review-item"><span>Carrier:</span><strong>${bestQuote.carrier}</strong></div>
+                                <div class="review-item"><span>Transit Time:</span><strong>${bestQuote.transitTime}</strong></div>`;
+                isRealQuote = true;
+                showToast('Real-time LCL quote loaded successfully!', 'success', 3000);
+            } else {
+                throw new Error('No quotes returned from SeaRates');
+            }
+            
+        } catch (apiError: any) {
+            console.log('SeaRates API unavailable, falling back to AI:', apiError.message);
+            
+            // Fallback to Google Gemini AI
+            if (!State.api) throw new Error("AI API not initialized.");
+            
+            const prompt = `
+                Act as a logistics pricing expert for LCL (Less than Container Load) sea freight.
+                - Origin CFS: ${origin}
+                - Destination CFS: ${destination}
+                - Total Volume: ${totalCbm.toFixed(3)} CBM
+                - Total Weight: ${totalWeight.toFixed(2)} kg
+                - Cargo description: ${cargoDescription}
+                - HS Code: ${hsCode || 'Not provided'}
+                - Cargo details: ${cargoSummary}
+                - Currency: ${State.currentCurrency.code}
+
+                Provide a single estimated base cost for the freight as a number. Do not add any other text or formatting.
+            `;
+            
+            const response = await State.api.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: prompt,
+            });
+            
+            const baseCost = parseFloat(response.text);
+            if (isNaN(baseCost)) throw new Error("Invalid AI response.");
+            
+            const markup = MARKUP_CONFIG.lcl.standard;
+            finalPrice = baseCost * (1 + markup);
+            carrierInfo = '<div class="review-item"><span>Source:</span><strong>AI Estimate</strong></div>';
+            
+            showToast('AI-estimated quote. We\'ll email confirmed rates.', 'info', 4000);
+        }
 
         const quoteContainer = document.getElementById('lcl-quote-container');
         if (quoteContainer) {
             quoteContainer.innerHTML = `
                 <div class="payment-overview">
                     <div class="review-item"><span>Route:</span><strong>${origin} &rarr; ${destination}</strong></div>
+                    ${carrierInfo}
                     <div id="lcl-quote-summary-cargo"></div>
                     <hr>
                     <div class="review-item total"><span>Estimated Freight Cost:</span><strong>${State.currentCurrency.symbol}${finalPrice.toFixed(2)}</strong></div>
@@ -219,7 +265,34 @@ async function handleLclFormSubmit(e: Event) {
             `;
             document.getElementById('lcl-quote-summary-cargo')!.innerHTML = document.getElementById('lcl-cargo-summary')!.innerHTML;
         }
+        
+        // Capture customer info if using AI fallback
+        if (!isRealQuote) {
+            try {
+                const customerInfo = await captureCustomerInfo('LCL');
+                if (customerInfo) {
+                    await submitQuoteRequest({
+                        serviceType: 'LCL',
+                        customerInfo,
+                        shipmentDetails: {
+                            origin,
+                            destination,
+                            cargoDescription,
+                            hsCode,
+                            totalCbm,
+                            totalWeight,
+                            cargoItems
+                        },
+                        aiEstimate: { totalCost: finalPrice, currency: State.currentCurrency.code }
+                    });
+                }
+            } catch (captureError) {
+                console.log('Customer info capture skipped:', captureError);
+            }
+        }
+        
         goToLclStep(2);
+        
     } catch (error) {
         console.error("LCL quote error:", error);
         showToast("Could not generate an estimate. Please try again.", "error");
