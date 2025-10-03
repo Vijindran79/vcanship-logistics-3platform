@@ -81,6 +81,113 @@ function initializeSmartHeader() {
     window.addEventListener('scroll', onScroll, { passive: true });
 }
 
+// --- Landscape Mode Suggestion for Phones ---
+function initializeOrientationSuggestion() {
+    // Detect if device is a phone (not tablet or desktop)
+    const isPhone = /iPhone|iPod|Android.*Mobile/i.test(navigator.userAgent) && window.innerWidth <= 767;
+    
+    if (!isPhone) return; // Only show for phones, not tablets/desktops
+
+    let orientationBanner: HTMLDivElement | null = null;
+    let dismissed = sessionStorage.getItem('vcanship-orientation-dismissed') === 'true';
+
+    const showOrientationSuggestion = () => {
+        const isPortrait = window.innerHeight > window.innerWidth;
+        
+        // Only show if in portrait mode and not dismissed
+        if (isPortrait && !dismissed) {
+            if (!orientationBanner) {
+                orientationBanner = document.createElement('div');
+                orientationBanner.style.cssText = `
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 1rem;
+                    text-align: center;
+                    z-index: 1000;
+                    box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+                    animation: slideUp 0.3s ease;
+                    font-family: 'Poppins', sans-serif;
+                `;
+                
+                orientationBanner.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; max-width: 600px; margin: 0 auto;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                            <i class="fas fa-mobile-screen-button" style="font-size: 2rem; animation: rotatePhone 2s ease-in-out infinite;"></i>
+                            <div style="text-align: left;">
+                                <strong style="display: block; margin-bottom: 0.25rem;">Better View Available!</strong>
+                                <span style="font-size: 0.9rem; opacity: 0.95;">Rotate your phone to landscape mode</span>
+                            </div>
+                        </div>
+                        <button id="dismiss-orientation" style="
+                            background: rgba(255,255,255,0.3);
+                            border: 2px solid white;
+                            color: white;
+                            padding: 0.5rem 1rem;
+                            border-radius: 20px;
+                            cursor: pointer;
+                            font-weight: 600;
+                            white-space: nowrap;
+                            font-family: 'Poppins', sans-serif;
+                        ">Got it</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(orientationBanner);
+                
+                // Add rotation animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideUp {
+                        from { transform: translateY(100%); }
+                        to { transform: translateY(0); }
+                    }
+                    @keyframes rotatePhone {
+                        0%, 100% { transform: rotate(0deg); }
+                        25% { transform: rotate(-15deg); }
+                        75% { transform: rotate(15deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Dismiss button handler
+                const dismissBtn = orientationBanner.querySelector('#dismiss-orientation');
+                dismissBtn?.addEventListener('click', () => {
+                    dismissed = true;
+                    sessionStorage.setItem('vcanship-orientation-dismissed', 'true');
+                    if (orientationBanner) {
+                        orientationBanner.style.animation = 'slideDown 0.3s ease';
+                        setTimeout(() => {
+                            orientationBanner?.remove();
+                            orientationBanner = null;
+                        }, 300);
+                    }
+                });
+            }
+        } else if (!isPortrait && orientationBanner) {
+            // Remove banner when in landscape
+            orientationBanner.remove();
+            orientationBanner = null;
+        }
+    };
+
+    // Check orientation on load
+    showOrientationSuggestion();
+
+    // Check when orientation changes
+    window.addEventListener('orientationchange', () => {
+        setTimeout(showOrientationSuggestion, 300); // Delay for accurate dimensions
+    });
+    
+    // Also check on resize (some devices don't fire orientationchange)
+    window.addEventListener('resize', () => {
+        setTimeout(showOrientationSuggestion, 100);
+    });
+}
+
 // --- Chatbot ---
 let chat: Chat | null = null;
 let ai: GoogleGenAI | null = null;
@@ -216,6 +323,7 @@ async function main() {
     initializeAccountPages();
     initializeChatbot();
     initializeSmartHeader(); // Auto-hide header on scroll down, show on scroll up
+    initializeOrientationSuggestion(); // Suggest landscape mode for phones
     
     // Initialize API usage tracking (async - only shows for Premium users)
     initializeAPIUsageTracking().catch(err => {
