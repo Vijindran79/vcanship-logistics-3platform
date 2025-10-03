@@ -38,6 +38,7 @@ export interface Quote {
     };
     serviceProvider: string;
     notes?: string;
+    shippoRateId?: string; // Shippo rate ID for label purchase
 }
 
 export interface DropOffLocation {

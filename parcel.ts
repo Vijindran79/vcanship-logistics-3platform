@@ -8,8 +8,91 @@ import { t } from './i18n';
 import { attachDynamicPostcodeValidation } from './validation';
 import { MARKUP_CONFIG } from './pricing';
 import { Type } from '@google/genai';
+import { 
+    getParcelRates, 
+    formatRate, 
+    cmToInches, 
+    kgToPounds, 
+    displayShippoStatus,
+    type ShippoAddress,
+    type ShippoParcel 
+} from './shippo-api';
 
 let currentQuotes: Quote[] = [];
+
+/**
+ * Convert full country name to ISO 2-letter code
+ */
+function getCountryCode(country: string): string {
+    const countryMap: { [key: string]: string } = {
+        'united states': 'US',
+        'usa': 'US',
+        'united kingdom': 'GB',
+        'uk': 'GB',
+        'canada': 'CA',
+        'australia': 'AU',
+        'germany': 'DE',
+        'france': 'FR',
+        'italy': 'IT',
+        'spain': 'ES',
+        'netherlands': 'NL',
+        'belgium': 'BE',
+        'switzerland': 'CH',
+        'austria': 'AT',
+        'sweden': 'SE',
+        'norway': 'NO',
+        'denmark': 'DK',
+        'finland': 'FI',
+        'poland': 'PL',
+        'czech republic': 'CZ',
+        'ireland': 'IE',
+        'portugal': 'PT',
+        'greece': 'GR',
+        'hungary': 'HU',
+        'romania': 'RO',
+        'bulgaria': 'BG',
+        'croatia': 'HR',
+        'slovakia': 'SK',
+        'slovenia': 'SI',
+        'lithuania': 'LT',
+        'latvia': 'LV',
+        'estonia': 'EE',
+        'japan': 'JP',
+        'china': 'CN',
+        'south korea': 'KR',
+        'korea': 'KR',
+        'singapore': 'SG',
+        'hong kong': 'HK',
+        'india': 'IN',
+        'brazil': 'BR',
+        'mexico': 'MX',
+        'argentina': 'AR',
+        'chile': 'CL',
+        'colombia': 'CO',
+        'peru': 'PE',
+        'new zealand': 'NZ',
+        'south africa': 'ZA',
+        'uae': 'AE',
+        'united arab emirates': 'AE',
+        'dubai': 'AE',
+        'saudi arabia': 'SA',
+        'israel': 'IL',
+        'turkey': 'TR',
+        'russia': 'RU',
+        'ukraine': 'UA',
+        'malaysia': 'MY',
+        'thailand': 'TH',
+        'indonesia': 'ID',
+        'philippines': 'PH',
+        'vietnam': 'VN',
+        'egypt': 'EG',
+        'nigeria': 'NG',
+        'kenya': 'KE'
+    };
+    
+    const normalized = country.toLowerCase().trim();
+    return countryMap[normalized] || country.substring(0, 2).toUpperCase();
+}
 
 function goToParcelStep(step: number) {
     const container = document.getElementById('page-parcel');
@@ -267,88 +350,118 @@ async function handleDetailsFormSubmit(e: Event) {
     }
 
     try {
-        if (!State.api) throw new Error("API not initialized");
-
-        const prompt = `
-            Act as a logistics pricing API. Based on the following parcel shipment details, provide a JSON response containing realistic quotes from 3-4 different carriers (like DHL, UPS, FedEx, DPD).
-            
-            Shipment Details:
-            - Origin: ${formData.origin.city}, ${formData.origin.country} (${formData.origin.postcode})
-            - Destination: ${formData.destination.city}, ${formData.destination.country} (${formData.destination.postcode})
-            - Weight: ${formData.weight} kg
-            - Dimensions: ${formData.length}x${formData.width}x${formData.height} cm
-            - Contents: ${formData.description}
-            - HS Code: ${formData.hsCode || 'N/A'}
-            - Currency: ${State.currentCurrency.code}
-
-            For each quote, calculate a realistic base shipping cost and a fuel surcharge (around 15-20% of base). The 'ourServiceFee' should be a ${MARKUP_CONFIG.parcel.standard * 100}% markup on the sum of base cost and fuel surcharge. The 'totalCost' must be the sum of all cost components. Also, provide a realistic estimated transit time.
-            Generate a compliance report based on the contents and route. For international shipments of items like electronics or textiles, mention potential customs duties. If the description is vague, issue a warning.
-            
-            Your response MUST be a single JSON object matching the provided schema. Do not include any text outside the JSON.
-        `;
+        // Display Shippo service status
+        displayShippoStatus();
         
-        const responseSchema = {
-            type: Type.OBJECT,
-            properties: {
-                itemWarning: { type: Type.STRING, nullable: true },
-                complianceReport: {
-                    type: Type.OBJECT,
-                    properties: {
-                        status: { type: Type.STRING },
-                        summary: { type: Type.STRING },
-                        requirements: {
-                            type: Type.ARRAY,
-                            items: {
-                                type: Type.OBJECT,
-                                properties: { title: { type: Type.STRING }, details: { type: Type.STRING } }
-                            }
-                        }
-                    }
-                },
-                quotes: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            carrierName: { type: Type.STRING },
-                            carrierType: { type: Type.STRING },
-                            estimatedTransitTime: { type: Type.STRING },
-                            chargeableWeight: { type: Type.NUMBER },
-                            chargeableWeightUnit: { type: Type.STRING },
-                            isSpecialOffer: { type: Type.BOOLEAN },
-                            totalCost: { type: Type.NUMBER },
-                            costBreakdown: {
-                                type: Type.OBJECT,
-                                properties: {
-                                    baseShippingCost: { type: Type.NUMBER },
-                                    fuelSurcharge: { type: Type.NUMBER },
-                                    estimatedCustomsAndTaxes: { type: Type.NUMBER },
-                                    optionalInsuranceCost: { type: Type.NUMBER },
-                                    ourServiceFee: { type: Type.NUMBER }
-                                }
-                            },
-                            serviceProvider: { type: Type.STRING, description: "Should always be 'Vcanship AI'" }
-                        }
-                    }
-                },
-                costSavingOpportunities: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { title: { type: Type.STRING }, description: { type: Type.STRING } } } },
-                nextSteps: { type: Type.STRING }
-            }
+        // Convert addresses to Shippo format
+        const fromAddress: ShippoAddress = {
+            name: formData.origin.name || 'Sender',
+            street1: formData.origin.street || formData.origin.city,
+            city: formData.origin.city,
+            state: '', // State not in Address type, will be parsed from address if needed
+            zip: formData.origin.postcode,
+            country: getCountryCode(formData.origin.country),
+            phone: formData.origin.phone || '',
+            email: formData.origin.email || ''
         };
-
-        const result = await State.api.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-            config: { responseMimeType: 'application/json', responseSchema }
+        
+        const toAddress: ShippoAddress = {
+            name: formData.destination.name || 'Recipient',
+            street1: formData.destination.street || formData.destination.city,
+            city: formData.destination.city,
+            state: '', // State not in Address type, will be parsed from address if needed
+            zip: formData.destination.postcode,
+            country: getCountryCode(formData.destination.country),
+            phone: formData.destination.phone || '',
+            email: formData.destination.email || ''
+        };
+        
+        // Convert parcel dimensions to Shippo format (inches and pounds)
+        const parcel: ShippoParcel = {
+            length: cmToInches(formData.length),
+            width: cmToInches(formData.width),
+            height: cmToInches(formData.height),
+            weight: kgToPounds(formData.weight),
+            distance_unit: 'in',
+            mass_unit: 'lb'
+        };
+        
+        // Get real carrier rates from Shippo
+        const shippoRates = await getParcelRates(fromAddress, toAddress, parcel);
+        
+        if (!shippoRates || shippoRates.length === 0) {
+            throw new Error('No rates available for this route');
+        }
+        
+        // Convert Shippo rates to our Quote format
+        const quotes: Quote[] = shippoRates.map(rate => {
+            const formatted = formatRate(rate);
+            const basePrice = formatted.price;
+            const markup = MARKUP_CONFIG.parcel.standard;
+            const serviceFee = basePrice * markup;
+            const totalCost = basePrice + serviceFee;
+            
+            return {
+                carrierName: formatted.carrier,
+                carrierType: 'Express Courier',
+                estimatedTransitTime: formatted.days,
+                chargeableWeight: formData.weight,
+                chargeableWeightUnit: 'KG',
+                weightBasis: 'Actual Weight',
+                isSpecialOffer: false,
+                totalCost: totalCost,
+                costBreakdown: {
+                    baseShippingCost: basePrice,
+                    fuelSurcharge: 0,
+                    estimatedCustomsAndTaxes: 0,
+                    optionalInsuranceCost: 0,
+                    ourServiceFee: serviceFee
+                },
+                serviceProvider: `Shippo (${formatted.carrier})`,
+                notes: formatted.service,
+                // Store Shippo rate ID for later label purchase
+                shippoRateId: rate.object_id
+            };
         });
         
-        const response: ApiResponse = JSON.parse(result.text);
+        // Generate basic compliance report
+        const complianceReport = {
+            status: 'Information',
+            summary: 'Standard shipping documentation required.',
+            requirements: [
+                {
+                    title: 'Commercial Invoice',
+                    details: 'Required for international shipments. Include item description, value, and HS code.'
+                },
+                {
+                    title: 'Customs Declaration',
+                    details: 'Declare contents accurately for customs clearance.'
+                }
+            ]
+        };
+        
+        // Create response in expected format
+        const response: ApiResponse = {
+            itemWarning: formData.weight > 30 ? 'Heavy parcel - additional handling fees may apply' : null,
+            complianceReport,
+            quotes,
+            costSavingOpportunities: [
+                {
+                    title: 'Bundle Shipments',
+                    description: 'Save up to 15% by combining multiple parcels into one shipment.'
+                }
+            ],
+            nextSteps: 'Select a carrier rate to proceed with booking and label generation.'
+        };
+        
+        showToast('Real-time carrier rates loaded from Shippo!', 'success', 3000);
         renderResults(response, origin, destination);
 
     } catch (error) {
         console.error('Error getting quotes:', error);
+        showToast('Could not fetch carrier rates. Please verify addresses and try again.', 'error');
         if (quotesContainer) {
-            quotesContainer.innerHTML = '<p class="error-text" style="text-align:center; padding: 2rem;">Sorry, we couldn\'t fetch quotes at this time. Please try again later.</p>';
+            quotesContainer.innerHTML = '<p class="error-text" style="text-align:center; padding: 2rem;">Sorry, we couldn\'t fetch quotes at this time. Please verify your addresses and try again.</p>';
         }
     }
 }
