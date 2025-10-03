@@ -14,7 +14,9 @@ export default defineConfig(({ mode }) => {
         port: 8080,
         strictPort: true,
         allowedHosts: [
-          "vcanship-logistics-3platform-1017726429002.europe-west1.run.app"
+          "vcanship-logistics-3platform-1017726429002.europe-west1.run.app",
+          "vcanresources.com",
+          "www.vcanresources.com"
         ]
       },
       plugins: [react()],
