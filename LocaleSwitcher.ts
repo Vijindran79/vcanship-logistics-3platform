@@ -266,8 +266,8 @@ function attachEventListeners() {
 export async function initializeLocaleSwitcher() {
     try {
         const [localesResponse, languagesResponse] = await Promise.all([
-            fetch('./locales.json'),
-            fetch('./languages.json')
+            fetch('/locales.json'),
+            fetch('/languages.json')
         ]);
         if (!localesResponse.ok) throw new Error(`HTTP error! status: ${localesResponse.status}`);
         if (!languagesResponse.ok) throw new Error(`HTTP error! status: ${languagesResponse.status}`);

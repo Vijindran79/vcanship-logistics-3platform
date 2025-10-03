@@ -42,11 +42,12 @@ export function t(key: string): string {
  */
 async function loadTranslations(lang: string): Promise<void> {
   try {
-    const response = await fetch(`./locales/${lang}.json`);
+    const response = await fetch(`/locales/${lang}.json`);
     if (!response.ok) {
       throw new Error(`Could not load translation file for ${lang}`);
     }
     translations = await response.json();
+    console.log(`✅ Loaded translations for language: ${lang}`, translations);
     currentLanguage = lang;
     document.documentElement.lang = lang;
     
