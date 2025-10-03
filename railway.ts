@@ -2,6 +2,8 @@
 import { State, setState, resetRailwayState } from './state';
 import { switchPage, updateProgressBar, showToast, toggleLoading } from './ui';
 import { MARKUP_CONFIG } from './pricing';
+import { displayAPIUsage } from './searates-api';
+import { captureCustomerInfo, submitQuoteRequest } from './email-capture';
 
 function goToRailwayStep(step: number) {
     updateProgressBar('trade-finance', step - 1);
@@ -88,18 +90,25 @@ async function handleRailwayFormSubmit(e: Event) {
     const cargoType = (document.getElementById('railway-cargo-type') as HTMLSelectElement).value;
     const weight = (document.getElementById('railway-cargo-weight') as HTMLInputElement).value;
 
-    const prompt = `
-        Act as a logistics pricing expert for railway freight.
-        - Origin Terminal: ${origin}
-        - Destination Terminal: ${dest}
-        - Cargo: ${cargoType}, ${weight} tons
-        - Currency: ${State.currentCurrency.code}
-
-        Provide a single estimated base cost for the freight as a number. Do not add any other text or formatting.
-    `;
-
     try {
+        // Display API usage for transparency
+        await displayAPIUsage();
+        
+        // Note: SeaRates API doesn't have dedicated rail endpoint
+        // Using AI estimate with customer info capture for manual follow-up
+        
         if (!State.api) throw new Error("AI API not initialized.");
+        
+        const prompt = `
+            Act as a logistics pricing expert for railway freight.
+            - Origin Terminal: ${origin}
+            - Destination Terminal: ${dest}
+            - Cargo: ${cargoType}, ${weight} tons
+            - Currency: ${State.currentCurrency.code}
+
+            Provide a single estimated base cost for the freight as a number. Do not add any other text or formatting.
+        `;
+
         const response = await State.api.models.generateContent({
             model: "gemini-2.5-flash",
             contents: prompt,
@@ -117,12 +126,36 @@ async function handleRailwayFormSubmit(e: Event) {
                 <div class="payment-overview">
                     <div class="review-item"><span>Route:</span><strong>${origin} &rarr; ${dest}</strong></div>
                     <div class="review-item"><span>Cargo:</span><strong>${cargoType} (${weight} tons)</strong></div>
+                    <div class="review-item"><span>Source:</span><strong>AI Estimate</strong></div>
                     <hr>
                     <div class="review-item total"><span>Estimated Cost:</span><strong>${State.currentCurrency.symbol}${finalPrice.toFixed(2)}</strong></div>
                 </div>
             `;
         }
+        
+        // Capture customer info for manual follow-up
+        try {
+            const customerInfo = await captureCustomerInfo('Railway');
+            if (customerInfo) {
+                await submitQuoteRequest({
+                    serviceType: 'Railway',
+                    customerInfo,
+                    shipmentDetails: {
+                        origin,
+                        destination: dest,
+                        cargoType,
+                        weight: `${weight} tons`
+                    },
+                    aiEstimate: { totalCost: finalPrice, currency: State.currentCurrency.code }
+                });
+            }
+        } catch (captureError) {
+            console.log('Customer info capture skipped:', captureError);
+        }
+        
+        showToast('AI estimate generated. We\'ll email confirmed rates.', 'info', 4000);
         goToRailwayStep(2);
+        
     } catch (error) {
         console.error("Railway quote error:", error);
         showToast("Could not generate an estimate. Please try again.", "error");
