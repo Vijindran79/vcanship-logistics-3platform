@@ -316,13 +316,22 @@ html[data-theme="dark"] .theme-switch .fa-moon { display: none; }
 main {
   flex: 1;
   position: relative;
+  width: 100%;
+  min-width: 0; /* Prevent flex items from overflowing */
 }
 
-.page { display: none; }
-.page.active { display: block; }
+.page { 
+  display: none; 
+  width: 100%;
+}
+.page.active { 
+  display: block; 
+  width: 100%;
+}
 
 #page-landing.active {
     display: block;
+    width: 100%;
 }
 
 .service-page, #page-dashboard, #page-help {
@@ -937,11 +946,37 @@ html[dir="rtl"] footer .footer-contact i { margin-right: 0; margin-left: 0.5rem;
 
 /* Responsive adjustments */
 @media (max-width: 992px) {
-  .main-container { flex-direction: column; }
-  .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; }
-  .sidebar-section { border-bottom: none; flex-direction: row; flex-wrap: wrap; }
+  .main-container { 
+    flex-direction: column; 
+    padding: 1rem;
+    gap: 1rem;
+  }
+  .sidebar { 
+    width: 100%; 
+    flex-direction: row; 
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    order: -1; /* Ensure sidebar appears first */
+  }
+  .sidebar-section { 
+    border-bottom: none; 
+    flex-direction: row; 
+    flex-wrap: wrap;
+    padding-bottom: 0;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .sidebar-btn,
+  .sidebar-btn-service {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
+  }
+  main { 
+    grid-template-columns: 1fr;
+    width: 100%;
+    margin-top: 1rem; /* Add space between sidebar and main content */
+  }
   .shipping-options, .additional-services, .two-column { grid-template-columns: 1fr; }
-  main { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
