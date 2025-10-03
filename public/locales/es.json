@@ -1,1 +1,95 @@
-// placeholder
+{
+  "header": {
+    "title": "VCanship",
+    "track": "Rastrear",
+    "loginSignup": "Iniciar Sesión / Registrarse",
+    "myAccount": "Mi Cuenta"
+  },
+  "sidebar": {
+      "services": "Servicios",
+      "apiHub": "Centro de API",
+      "helpCenter": "Centro de Ayuda",
+      "vehicle": "Envío de Vehículos",
+      "railway": "Flete Ferroviario",
+      "inland": "Transporte Terrestre",
+      "bulk": "Carga a Granel y Chárter",
+      "rivertug": "Barcaza y Remolcador Fluvial",
+      "warehouse": "Almacenamiento",
+      "schedules": "Horarios y Rutas",
+      "tradeFinance": "Financiamiento Comercial",
+      "ecommerce": "Lanza tu Tienda Global",
+      "partner": "Conviértete en Socio"
+  },
+  "footer": {
+    "helpCenter": "Centro de Ayuda",
+    "privacyPolicy": "Política de Privacidad",
+    "termsOfService": "Términos de Servicio",
+    "inspectorPortal": "Portal de Inspección",
+    "copyright": "© 2024 Vcanship por Vcan Resources. Todos los derechos reservados."
+  },
+  "landing": {
+    "seo": {
+      "business": "Tarifas optimizadas por IA para paquetes del Reino Unido a EE. UU.|Cotizaciones instantáneas de flete marítimo FCL y LCL|Cumplimiento global de comercio electrónico y entrega de última milla|Transporte mundial fiable de vehículos RoRo y en contenedores|Seguimiento y reserva de carga aérea en tiempo real|Soluciones rentables de envío de equipaje internacional|Almacenamiento bajo demanda cerca de los principales puertos mundiales|Optimice su cadena de suministro con nuestra API de logística|Cálculo simplificado de aduanas e impuestos para importaciones|Reserve con confianza fletes ferroviarios transcontinentales|Desbloquee capital con financiamiento comercial integrado para exportadores|Servicios de fletamento de buques y carga a granel sin complicaciones|Encuentre la forma más barata de enviar sus mercancías a nivel internacional|Su socio de confianza para la logística de cargas de proyectos complejos|Red de transporte y camiones terrestres sin interrupciones",
+      "emotional": "Tu ambición, nuestra misión. Entregado.|De tu taller al escenario mundial.|Conectando a seres queridos, un paquete a la vez.|La confianza para globalizarse.|Logística resuelta, para que puedas concentrarte en tu sueño.|Acortando distancias, entregando felicidad.|Tu cadena de suministro, sobrealimentada por IA.|Más que envíos. Es una asociación.|Tranquilidad en cada envío.|Tu próximo gran movimiento, simplificado.|Potenciando tu negocio para alcanzar nuevos horizontes.|El paquete de cuidados que se siente como un abrazo.|Tu coche clásico, transportado con pasión.|Marcando una gran diferencia para tu negocio.|Desde un clic hasta la puerta de un cliente, sin problemas."
+    },
+    "parcel_title": "Enviar un Paquete",
+    "parcel_subtitle": "Entrega internacional rápida y asequible",
+    "parcel_cta": "Obtener Cotización",
+    "parcel_from_label": "Desde",
+    "parcel_to_label": "A",
+    "parcel_weight_label": "Peso (kg)",
+    "parcel_origin_placeholder": "País/Código postal de origen",
+    "parcel_dest_placeholder": "País/Código postal de destino",
+    "parcel_weight_placeholder": "p.ej., 2",
+    "air_freight_title": "Carga Aérea",
+    "air_freight_cta": "Reservar Carga Aérea",
+    "fcl_title": "Envío FCL",
+    "fcl_cta": "Reservar FCL",
+    "lcl_title": "Envío LCL",
+    "lcl_cta": "Reservar LCL",
+    "ecommerce_title": "Soluciones de E-commerce",
+    "ecommerce_subtitle": "Cumplimiento integrado, almacenamiento y entrega de última milla",
+    "ecommerce_cta": "Comenzar",
+    "partner_title": "Conviértase en Socio",
+    "partner_subtitle": "Únase a nuestra red global de transportistas de confianza",
+    "partner_cta": "Registrarse Ahora"
+  },
+  "parcel": {
+    "back_to_services": "Volver a Servicios",
+    "title": "Enviar un Paquete",
+    "subtitle": "Introduzca los detalles de su envío para obtener cotizaciones instantáneas.",
+    "pickup_option": "Opción de Recogida",
+    "schedule_pickup": "Programar Recogida",
+    "schedule_pickup_desc": "Recogeremos en su dirección.",
+    "drop_off": "Lo Dejaré Yo Mismo",
+    "drop_off_desc": "Encuentre una ubicación cercana.",
+    "origin": "Origen",
+    "destination": "Destino",
+    "full_name": "Nombre Completo",
+    "street_address": "Dirección",
+    "city": "Ciudad",
+    "postcode": "Código Postal / ZIP",
+    "country": "País",
+    "package_details": "Detalles del Paquete",
+    "weight_kg": "Peso (kg)",
+    "length_cm": "Largo (cm)",
+    "width_cm": "Ancho (cm)",
+    "height_cm": "Alto (cm)",
+    "item_details": "Detalles del Artículo",
+    "description": "Descripción",
+    "hs_code_optional": "Código HS (Opcional)",
+    "get_quotes": "Obtener Cotizaciones"
+  },
+   "modals": {
+      "track": {
+          "title": "Rastrea Tu Envío"
+      },
+      "locale": {
+          "title": "Seleccionar Región e Idioma",
+          "description": "Su selección actualizará las opciones de moneda e idioma en todo el sitio.",
+          "search_placeholder": "Buscar por país o código...",
+          "cancel": "Cancelar",
+          "confirm": "Confirmar"
+      }
+  }
+}

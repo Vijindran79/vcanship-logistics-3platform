@@ -1,1 +1,95 @@
-// placeholder
+{
+  "header": {
+    "title": "VCanship",
+    "track": "Jejak",
+    "loginSignup": "Log Masuk / Daftar",
+    "myAccount": "Akaun Saya"
+  },
+  "sidebar": {
+      "services": "Perkhidmatan",
+      "apiHub": "Hab API",
+      "helpCenter": "Pusat Bantuan",
+      "vehicle": "Penghantaran Kenderaan",
+      "railway": "Pengangkutan Kereta Api",
+      "inland": "Lori Darat",
+      "bulk": "Kargo Pukal & Sewa Khas",
+      "rivertug": "Tongkang & Tunda Sungai",
+      "warehouse": "Penggudangan",
+      "schedules": "Jadual & Laluan",
+      "tradeFinance": "Pembiayaan Perdagangan",
+      "ecommerce": "Lancarkan Kedai Global Anda",
+      "partner": "Jadi Rakan Kongsi"
+  },
+  "footer": {
+    "helpCenter": "Pusat Bantuan",
+    "privacyPolicy": "Dasar Privasi",
+    "termsOfService": "Syarat Perkhidmatan",
+    "inspectorPortal": "Portal Pemeriksa",
+    "copyright": "© 2024 Vcanship oleh Vcan Resources. Hak Cipta Terpelihara."
+  },
+  "landing": {
+    "seo": {
+      "business": "Kadar Dioptimumkan AI untuk Bungkusan UK ke USA|Sebut Harga Kargo Laut FCL & LCL Segera|Pemenuhan E-dagang Global & Penghantaran Batu Terakhir|Penghantaran Kenderaan RoRo & Kontena Boleh Dipercayai di Seluruh Dunia|Penjejakan & Tempahan Kargo Udara Masa Nyata|Penyelesaian Penghantaran Bagasi Antarabangsa yang Jimat Kos|Gudang Atas Permintaan Berhampiran Pelabuhan Utama Global|Perkemaskan Rantaian Bekalan Anda dengan API Logistik kami|Pengiraan Kastam & Duti Dipermudahkan untuk Import|Tempah Kargo Kereta Api Rentas Benua dengan Yakin|Buka Modal dengan Pembiayaan Perdagangan Bersepadu untuk Pengeksport|Perkhidmatan Penyewaan Kapal & Kargo Pukal Tanpa Kerumitan|Cari Cara Termurah untuk Menghantar Barangan Anda di Peringkat Antarabangsa|Rakan Kongsi Dipercayai Anda untuk Logistik Kargo Projek Kompleks|Rangkaian Pengangkutan & Lori Darat yang Lancar",
+      "emotional": "Cita-cita Anda, Misi Kami. Dihantar.|Dari Bengkel Anda ke Pentas Dunia.|Menghubungkan Orang Tersayang, Satu Bungkusan pada Satu Masa.|Keyakinan untuk Menjadi Global.|Logistik Diselesaikan, Supaya Anda Boleh Fokus pada Impian Anda.|Merapatkan Jurang, Menghantar Kebahagiaan.|Rantaian Bekalan Anda, Diperkasakan oleh AI.|Lebih Daripada Penghantaran. Ia adalah Perkongsian.|Ketenangan Fikiran dalam Setiap Penghantaran.|Langkah Besar Anda Seterusnya, Dipermudahkan.|Memperkasakan Perniagaan Anda untuk Mencapai Tahap Baharu.|Pakej Kiriman yang Terasa Seperti Pelukan.|Kereta Klasik Anda, Diangkut dengan Semangat.|Membuat Perbezaan Besar untuk Perniagaan Anda.|Dari Satu Klik ke Pintu Pelanggan, dengan Lancar."
+    },
+    "parcel_title": "Hantar Bungkusan",
+    "parcel_subtitle": "Penghantaran antarabangsa yang pantas dan berpatutan",
+    "parcel_cta": "Dapatkan Sebut Harga",
+    "parcel_from_label": "Dari",
+    "parcel_to_label": "Ke",
+    "parcel_weight_label": "Berat (kg)",
+    "parcel_origin_placeholder": "Negara/Poskod Asal",
+    "parcel_dest_placeholder": "Negara/Poskod Destinasi",
+    "parcel_weight_placeholder": "cth., 2",
+    "air_freight_title": "Kargo Udara",
+    "air_freight_cta": "Tempah Kargo Udara",
+    "fcl_title": "Penghantaran FCL",
+    "fcl_cta": "Tempah FCL",
+    "lcl_title": "Penghantaran LCL",
+    "lcl_cta": "Tempah LCL",
+    "ecommerce_title": "Penyelesaian E-dagang",
+    "ecommerce_subtitle": "Pemenuhan bersepadu, penggudangan, dan penghantaran batu terakhir",
+    "ecommerce_cta": "Mulakan",
+    "partner_title": "Jadi Rakan Kongsi",
+    "partner_subtitle": "Sertai rangkaian global kami yang terdiri daripada pembawa yang dipercayai",
+    "partner_cta": "Daftar Sekarang"
+  },
+  "parcel": {
+    "back_to_services": "Kembali ke Perkhidmatan",
+    "title": "Hantar Bungkusan",
+    "subtitle": "Masukkan butiran penghantaran anda untuk mendapatkan sebut harga segera.",
+    "pickup_option": "Pilihan Pengambilan",
+    "schedule_pickup": "Jadualkan Pengambilan",
+    "schedule_pickup_desc": "Kami akan mengambil dari alamat anda.",
+    "drop_off": "Saya Akan Hantar Sendiri",
+    "drop_off_desc": "Cari lokasi berdekatan.",
+    "origin": "Asal",
+    "destination": "Destinasi",
+    "full_name": "Nama Penuh",
+    "street_address": "Alamat Jalan",
+    "city": "Bandar",
+    "postcode": "Poskod / ZIP",
+    "country": "Negara",
+    "package_details": "Butiran Bungkusan",
+    "weight_kg": "Berat (kg)",
+    "length_cm": "Panjang (cm)",
+    "width_cm": "Lebar (cm)",
+    "height_cm": "Tinggi (cm)",
+    "item_details": "Butiran Item",
+    "description": "Penerangan",
+    "hs_code_optional": "Kod HS (Pilihan)",
+    "get_quotes": "Dapatkan Sebut Harga"
+  },
+  "modals": {
+      "track": {
+          "title": "Jejak Penghantaran Anda"
+      },
+      "locale": {
+          "title": "Pilih Rantau & Bahasa",
+          "description": "Pilihan anda akan mengemas kini pilihan mata wang dan bahasa di seluruh tapak.",
+          "search_placeholder": "Cari mengikut negara atau kod...",
+          "cancel": "Batal",
+          "confirm": "Sahkan"
+      }
+  }
+}
