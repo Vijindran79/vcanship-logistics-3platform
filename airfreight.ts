@@ -4,6 +4,9 @@ import autoTable from 'jspdf-autotable';
 import { State, setState, resetAirfreightState, AirfreightCargoPiece, Quote, ComplianceDoc, AirfreightDetails } from './state';
 import { switchPage, updateProgressBar, showToast, toggleLoading } from './ui';
 import { getHsCodeSuggestions } from './api';
+import { getAirFreightQuotes, displayAPIUsage } from './searates-api';
+import { captureCustomerInfo, submitQuoteRequest } from './email-capture';
+import { MARKUP_CONFIG } from './pricing';
 
 // --- MODULE STATE ---
 let cargoPieces: AirfreightCargoPiece[] = [];
@@ -243,19 +246,132 @@ async function handleGetQuote() {
         hsCode: (document.getElementById('airfreight-hs-code') as HTMLInputElement).value,
         cargoPieces: cargoPieces,
         chargeableWeight: chargeableWeight,
-        serviceLevel: 'standard', // Default for now
-        cargoCategory: '', // Deprecated but in state
+        serviceLevel: 'standard',
+        cargoCategory: '',
     };
     setState({ airfreightDetails: details });
     
-    toggleLoading(true, "Analyzing your shipment...");
+    toggleLoading(true, "Getting air freight quotes...");
+    
     try {
-        const { quote, complianceReport } = await getMockAirfreightApiResponse(details);
-        const docs: ComplianceDoc[] = complianceReport.requirements.map((r: any) => ({ ...r, status: 'pending', file: null }));
+        // Display API usage
+        await displayAPIUsage();
+        
+        // Calculate total volume for API call
+        let totalVolume = 0;
+        cargoPieces.forEach(item => {
+            totalVolume += (item.length * item.width * item.height) / 1000000 * item.pieces;
+        });
+        
+        let quote: Quote;
+        let isRealQuote = false;
+        
+        // Try SeaRates API first
+        try {
+            const quotes = await getAirFreightQuotes(
+                { country: 'UK', city: details.originAirport },
+                { country: 'US', city: details.destAirport },
+                { weight: chargeableWeight, volume: totalVolume }
+            );
+            
+            if (quotes && quotes.length > 0) {
+                const bestQuote = quotes[0];
+                const baseCost = bestQuote.price;
+                const markupCost = baseCost * (1 + MARKUP_CONFIG.airfreight.standard);
+                
+                quote = {
+                    carrierName: bestQuote.carrier,
+                    carrierType: "Air Carrier",
+                    estimatedTransitTime: bestQuote.transitTime,
+                    chargeableWeight: chargeableWeight,
+                    chargeableWeightUnit: "KG",
+                    weightBasis: "Chargeable Weight",
+                    isSpecialOffer: false,
+                    totalCost: markupCost,
+                    costBreakdown: {
+                        baseShippingCost: baseCost,
+                        fuelSurcharge: baseCost * 0.2,
+                        estimatedCustomsAndTaxes: 0,
+                        optionalInsuranceCost: 0,
+                        ourServiceFee: markupCost - baseCost,
+                    },
+                    serviceProvider: `SeaRates (${bestQuote.carrier})`,
+                };
+                
+                isRealQuote = true;
+                showToast('Real-time air freight quote loaded!', 'success', 3000);
+            } else {
+                throw new Error('No quotes returned from SeaRates');
+            }
+            
+        } catch (apiError: any) {
+            console.log('SeaRates API unavailable, using fallback estimate:', apiError.message);
+            
+            // Fallback to mock/estimate
+            const baseRatePerKg = 3.5 + Math.random() * 2;
+            const baseCost = baseRatePerKg * chargeableWeight;
+            
+            quote = {
+                carrierName: "Lufthansa Cargo",
+                carrierType: "Air Carrier",
+                estimatedTransitTime: "3-5 days",
+                chargeableWeight: chargeableWeight,
+                chargeableWeightUnit: "KG",
+                weightBasis: "Chargeable Weight",
+                isSpecialOffer: false,
+                totalCost: baseCost * 1.1,
+                costBreakdown: {
+                    baseShippingCost: baseCost,
+                    fuelSurcharge: baseCost * 0.2,
+                    estimatedCustomsAndTaxes: 0,
+                    optionalInsuranceCost: 0,
+                    ourServiceFee: baseCost * 0.1,
+                },
+                serviceProvider: "Vcanship AI Estimate",
+            };
+            
+            showToast('AI-estimated quote. We\'ll email confirmed rates.', 'info', 4000);
+        }
+        
+        // Generate standard compliance docs
+        const requirements: Omit<ComplianceDoc, 'file' | 'status'>[] = [
+            { id: 'doc-awb', title: 'Air Waybill (AWB)', description: 'The primary transport document for your air freight.', required: true },
+            { id: 'doc-ci', title: 'Commercial Invoice', description: 'A customs document detailing the goods and their value.', required: true },
+            { id: 'doc-pl', title: 'Packing List', description: 'Details the contents of the shipment.', required: true },
+        ];
+
+        if (details.cargoDescription.toLowerCase().includes('batteries') || details.cargoDescription.toLowerCase().includes('lithium')) {
+            requirements.push({ id: 'doc-dgd', title: 'Dangerous Goods Declaration (DGD)', description: 'Required for items containing lithium batteries.', required: true });
+        }
+        if (details.cargoDescription.toLowerCase().includes('food') || details.cargoDescription.toLowerCase().includes('plant')) {
+            requirements.push({ id: 'doc-phyto', title: 'Phytosanitary Certificate', description: 'Required for shipping organic materials like food or plants.', required: true });
+        }
+        
+        const docs: ComplianceDoc[] = requirements.map((r: any) => ({ ...r, status: 'pending', file: null }));
+        
+        // Capture customer info if using fallback
+        if (!isRealQuote) {
+            try {
+                const customerInfo = await captureCustomerInfo('Air Freight');
+                if (customerInfo) {
+                    await submitQuoteRequest({
+                        serviceType: 'Air Freight',
+                        customerInfo,
+                        shipmentDetails: details,
+                        aiEstimate: quote
+                    });
+                }
+            } catch (captureError) {
+                console.log('Customer info capture skipped:', captureError);
+            }
+        }
+        
         setState({ airfreightQuote: quote, airfreightComplianceDocs: docs });
         renderQuoteAndComplianceStep();
         goToAirfreightStep(3);
+        
     } catch (error) {
+        console.error("Air freight quote error:", error);
         showToast("Failed to get quote and compliance.", "error");
     } finally {
         toggleLoading(false);
