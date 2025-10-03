@@ -177,7 +177,11 @@ async function main() {
     initializeDashboard();
     initializeAccountPages();
     initializeChatbot();
-    initializeAPIUsageTracking();
+    
+    // Initialize API usage tracking (async - only shows for Premium users)
+    initializeAPIUsageTracking().catch(err => {
+        console.error('Failed to initialize API usage tracking:', err);
+    });
     
     // --- Global Event Listeners ---
     document.body.addEventListener('click', (e) => {

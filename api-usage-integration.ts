@@ -2,12 +2,22 @@
 // Integrates the API usage tracker into the application UI
 
 import { renderAPIUsageBadge, renderAPIUsageWidget, showAPIUsageModal } from './api-usage-tracker';
+import { isUserSubscribed } from './subscription';
 
 /**
  * Initialize API usage tracking in the application
+ * Now only shown for Premium subscribers (free users don't use SeaRates API)
  */
-export function initializeAPIUsageTracking(): void {
-    // Add badge to header if user is logged in
+export async function initializeAPIUsageTracking(): Promise<void> {
+    // Only show for Premium users who have access to SeaRates API
+    const hasSubscription = await isUserSubscribed();
+    
+    if (!hasSubscription) {
+        console.log('ℹ️ API usage badge hidden for free users (AI estimates only)');
+        return;
+    }
+    
+    // Add badge to header for Premium users only
     const headerUserActions = document.querySelector('.header-user-actions');
     
     if (headerUserActions) {
@@ -58,8 +68,15 @@ function addDashboardWidget(): void {
 
 /**
  * Refresh API usage display (call after making API calls)
+ * Only refreshes if user is Premium subscriber
  */
-export function refreshAPIUsageDisplay(): void {
+export async function refreshAPIUsageDisplay(): Promise<void> {
+    const hasSubscription = await isUserSubscribed();
+    
+    if (!hasSubscription) {
+        return; // Free users don't have badge to refresh
+    }
+    
     // Refresh badge
     const badgeContainer = document.getElementById('api-usage-badge-container');
     if (badgeContainer) {
