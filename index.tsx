@@ -13,6 +13,7 @@ import { GoogleGenAI, Chat, Type, GenerateContentResponse } from '@google/genai'
 import { initializeI18n, updateStaticUIText, t } from './i18n';
 import { initializeSidebar } from './sidebar';
 import { unmountPromotionBanner } from './promotions';
+import { initializeAPIUsageTracking } from './api-usage-integration';
 // FIX: Removed import for initializeSupabase as it is not exported from the module.
 // The supabase client is initialized on module load.
 
@@ -176,6 +177,7 @@ async function main() {
     initializeDashboard();
     initializeAccountPages();
     initializeChatbot();
+    initializeAPIUsageTracking();
     
     // --- Global Event Listeners ---
     document.body.addEventListener('click', (e) => {

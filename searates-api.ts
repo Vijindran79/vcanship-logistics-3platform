@@ -5,6 +5,7 @@
 import { supabase } from './supabase';
 import { showToast } from './ui';
 import { captureCustomerInfo, submitQuoteRequest } from './email-capture';
+import { refreshAPIUsageDisplay } from './api-usage-integration';
 
 // API Configuration
 const SEARATES_API_KEY = 'K-21EB16AA-B6A6-4D41-9365-5882597F9B11';
@@ -175,6 +176,13 @@ async function callSeaRatesAPI(request: SeaRatesQuoteRequest): Promise<SeaRatesQ
         
         // Increment counter on successful call
         await incrementCallCounter();
+        
+        // Refresh UI display
+        try {
+            refreshAPIUsageDisplay();
+        } catch (e) {
+            console.log('Could not refresh API usage display:', e);
+        }
         
         // Parse and format response
         return parseSeaRatesResponse(data, request.mode);
