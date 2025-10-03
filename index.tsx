@@ -43,6 +43,44 @@ function initializeTheme() {
     });
 }
 
+// --- Smart Header (Auto-hide on scroll down, show on scroll up) ---
+function initializeSmartHeader() {
+    const header = document.querySelector('header');
+    if (!header) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const updateHeader = () => {
+        const currentScrollY = window.scrollY;
+        
+        // Don't hide header if we're at the very top
+        if (currentScrollY <= 10) {
+            header.classList.remove('header-hidden');
+        }
+        // Hide header when scrolling down (and past 10px)
+        else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            header.classList.add('header-hidden');
+        }
+        // Show header when scrolling up
+        else if (currentScrollY < lastScrollY) {
+            header.classList.remove('header-hidden');
+        }
+
+        lastScrollY = currentScrollY;
+        ticking = false;
+    };
+
+    const onScroll = () => {
+        if (!ticking) {
+            window.requestAnimationFrame(updateHeader);
+            ticking = true;
+        }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+}
+
 // --- Chatbot ---
 let chat: Chat | null = null;
 let ai: GoogleGenAI | null = null;
@@ -177,6 +215,7 @@ async function main() {
     initializeDashboard();
     initializeAccountPages();
     initializeChatbot();
+    initializeSmartHeader(); // Auto-hide header on scroll down, show on scroll up
     
     // Initialize API usage tracking (async - only shows for Premium users)
     initializeAPIUsageTracking().catch(err => {
