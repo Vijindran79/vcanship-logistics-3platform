@@ -321,6 +321,12 @@ export interface AppState {
     currentUser: { name: string; email: string } | null;
     postLoginRedirectService: Service | string | null;
     subscriptionTier: 'guest' | 'free' | 'pro';
+    subscription: {
+        isActive: boolean;
+        plan: 'monthly' | 'yearly' | null;
+        periodEnd: string | null;
+        cancelAtPeriodEnd: boolean;
+    } | null;
     aiLookupsRemaining: number;
     currentCurrency: Currency;
 
@@ -455,6 +461,7 @@ export let State: AppState = {
     currentUser: null,
     postLoginRedirectService: null,
     subscriptionTier: 'guest',
+    subscription: null,
     aiLookupsRemaining: 0,
     currentCurrency: { code: 'USD', symbol: '$' },
 

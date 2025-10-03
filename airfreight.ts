@@ -7,6 +7,8 @@ import { getHsCodeSuggestions } from './api';
 import { getAirFreightQuotes, displayAPIUsage } from './searates-api';
 import { captureCustomerInfo, submitQuoteRequest } from './email-capture';
 import { MARKUP_CONFIG } from './pricing';
+import { isUserSubscribed, getAPIUnavailableReason } from './subscription';
+import { getCachedRates, setCachedRates, getCacheInfo } from './rate-cache';
 
 // --- MODULE STATE ---
 let cargoPieces: AirfreightCargoPiece[] = [];
@@ -265,47 +267,80 @@ async function handleGetQuote() {
         
         let quote: Quote;
         let isRealQuote = false;
+        let usedCache = false;
         
-        // Try SeaRates API first
-        try {
-            const quotes = await getAirFreightQuotes(
-                { country: 'UK', city: details.originAirport },
-                { country: 'US', city: details.destAirport },
-                { weight: chargeableWeight, volume: totalVolume }
-            );
+        // Step 0: Check subscription
+        const hasSubscription = await isUserSubscribed();
+        
+        // Step 1: Check cache (for subscribed users)
+        if (hasSubscription) {
+            const cacheParams = { weight: chargeableWeight, volume: totalVolume };
+            const cachedQuotes = getCachedRates('airfreight', details.originAirport, details.destAirport, cacheParams);
             
-            if (quotes && quotes.length > 0) {
-                const bestQuote = quotes[0];
-                const baseCost = bestQuote.price;
-                const markupCost = baseCost * (1 + MARKUP_CONFIG.airfreight.standard);
-                
-                quote = {
-                    carrierName: bestQuote.carrier,
-                    carrierType: "Air Carrier",
-                    estimatedTransitTime: bestQuote.transitTime,
-                    chargeableWeight: chargeableWeight,
-                    chargeableWeightUnit: "KG",
-                    weightBasis: "Chargeable Weight",
-                    isSpecialOffer: false,
-                    totalCost: markupCost,
-                    costBreakdown: {
-                        baseShippingCost: baseCost,
-                        fuelSurcharge: baseCost * 0.2,
-                        estimatedCustomsAndTaxes: 0,
-                        optionalInsuranceCost: 0,
-                        ourServiceFee: markupCost - baseCost,
-                    },
-                    serviceProvider: `SeaRates (${bestQuote.carrier})`,
-                };
-                
+            if (cachedQuotes && cachedQuotes.length > 0) {
+                quote = cachedQuotes[0];
                 isRealQuote = true;
-                showToast('Real-time air freight quote loaded!', 'success', 3000);
-            } else {
-                throw new Error('No quotes returned from SeaRates');
+                usedCache = true;
+                
+                const cacheInfo = getCacheInfo('airfreight', details.originAirport, details.destAirport, cacheParams);
+                showToast(`✅ Using cached air freight rate (${cacheInfo.hoursRemaining}h valid)`, 'success', 3000);
+                console.log('[Air Freight] Cache hit, saved 1 API call!');
             }
-            
-        } catch (apiError: any) {
-            console.log('SeaRates API unavailable, using fallback estimate:', apiError.message);
+        }
+        
+        // Step 2: Try SeaRates API (if subscribed and not cached)
+        if (!usedCache && hasSubscription) {
+            try {
+                console.log('✅ Subscription active - fetching live air freight quotes...');
+                const quotes = await getAirFreightQuotes(
+                    { country: 'UK', city: details.originAirport },
+                    { country: 'US', city: details.destAirport },
+                    { weight: chargeableWeight, volume: totalVolume }
+                );
+                
+                if (quotes && quotes.length > 0) {
+                    const bestQuote = quotes[0];
+                    const baseCost = bestQuote.price;
+                    const markupCost = baseCost * (1 + MARKUP_CONFIG.airfreight.standard);
+                    
+                    quote = {
+                        carrierName: bestQuote.carrier,
+                        carrierType: "Air Carrier",
+                        estimatedTransitTime: bestQuote.transitTime,
+                        chargeableWeight: chargeableWeight,
+                        chargeableWeightUnit: "KG",
+                        weightBasis: "Chargeable Weight",
+                        isSpecialOffer: false,
+                        totalCost: markupCost,
+                        costBreakdown: {
+                            baseShippingCost: baseCost,
+                            fuelSurcharge: baseCost * 0.2,
+                            estimatedCustomsAndTaxes: 0,
+                            optionalInsuranceCost: 0,
+                            ourServiceFee: markupCost - baseCost,
+                        },
+                        serviceProvider: `SeaRates (${bestQuote.carrier})`,
+                    };
+                    
+                    // Cache the rate
+                    const cacheParams = { weight: chargeableWeight, volume: totalVolume };
+                    setCachedRates('airfreight', details.originAirport, details.destAirport, cacheParams, [quote]);
+                    
+                    isRealQuote = true;
+                    showToast('✅ Live air freight quote! Valid for 24 hours.', 'success', 3000);
+                } else {
+                    throw new Error('No quotes returned from SeaRates');
+                }
+                
+            } catch (apiError: any) {
+                console.log('❌ SeaRates API error, falling back to AI:', apiError.message);
+            }
+        }
+        
+        // Step 3: Fallback to AI (free users or API error)
+        if (!isRealQuote) {
+            const reason = await getAPIUnavailableReason();
+            console.log(`💡 Using AI estimate: ${reason}`);
             
             // Fallback to mock/estimate
             const baseRatePerKg = 3.5 + Math.random() * 2;
@@ -330,7 +365,13 @@ async function handleGetQuote() {
                 serviceProvider: "Vcanship AI Estimate",
             };
             
-            showToast('AI-estimated quote. We\'ll email confirmed rates.', 'info', 4000);
+            if (!hasSubscription && State.isLoggedIn) {
+                showToast('💡 AI estimate - Upgrade to Premium ($9.99/mo) for live rates!', 'info', 5000);
+            } else if (!State.isLoggedIn) {
+                showToast('AI estimate. Log in & subscribe for live air freight rates.', 'info', 4000);
+            } else {
+                showToast('AI estimate - We\'ll email confirmed rates soon.', 'info', 4000);
+            }
         }
         
         // Generate standard compliance docs

@@ -5,6 +5,8 @@ import { MARKUP_CONFIG } from './pricing';
 import { getHsCodeSuggestions } from './api';
 import { getLCLQuotes, displayAPIUsage } from './searates-api';
 import { captureCustomerInfo, submitQuoteRequest } from './email-capture';
+import { isUserSubscribed, getAPIUnavailableReason } from './subscription';
+import { getCachedRates, setCachedRates, getCacheInfo } from './rate-cache';
 
 let cargoItems: LclCargoItem[] = [];
 
@@ -195,30 +197,83 @@ async function handleLclFormSubmit(e: Event) {
         let finalPrice: number;
         let carrierInfo = '';
         let isRealQuote = false;
+        let usedCache = false;
         
-        // Try SeaRates API first
-        try {
-            const quotes = await getLCLQuotes(
-                { country: originCountry || origin, city: originCity || origin },
-                { country: destCountry || destination, city: destCity || destination },
-                { weight: totalWeight, volume: totalCbm }
-            );
+        // Step 0: Check subscription
+        const hasSubscription = await isUserSubscribed();
+        
+        // Step 1: Check cache (for subscribed users)
+        if (hasSubscription) {
+            const cacheParams = { weight: totalWeight, volume: totalCbm };
+            const cachedQuotes = getCachedRates('lcl', originCity || origin, destCity || destination, cacheParams);
             
-            if (quotes && quotes.length > 0) {
-                const bestQuote = quotes[0];
-                const baseCost = bestQuote.price;
-                const markup = MARKUP_CONFIG.lcl.standard;
-                finalPrice = baseCost * (1 + markup);
-                carrierInfo = `<div class="review-item"><span>Carrier:</span><strong>${bestQuote.carrier}</strong></div>
-                                <div class="review-item"><span>Transit Time:</span><strong>${bestQuote.transitTime}</strong></div>`;
+            if (cachedQuotes && cachedQuotes.length > 0) {
+                const cached = cachedQuotes[0];
+                finalPrice = cached.totalCost;
+                carrierInfo = `<div class="review-item"><span>Carrier:</span><strong>${cached.carrierName}</strong></div>
+                                <div class="review-item"><span>Transit Time:</span><strong>${cached.estimatedTransitTime}</strong></div>
+                                <div class="review-item"><span>Cached Rate:</span><strong>Valid for ${getCacheInfo('lcl', originCity || origin, destCity || destination, cacheParams).hoursRemaining}h</strong></div>`;
                 isRealQuote = true;
-                showToast('Real-time LCL quote loaded successfully!', 'success', 3000);
-            } else {
-                throw new Error('No quotes returned from SeaRates');
+                usedCache = true;
+                showToast(`✅ Using cached LCL rate`, 'success', 3000);
+                console.log('[LCL] Cache hit, saved 1 API call!');
             }
-            
-        } catch (apiError: any) {
-            console.log('SeaRates API unavailable, falling back to AI:', apiError.message);
+        }
+        
+        // Step 2: Try SeaRates API (if subscribed and not cached)
+        if (!usedCache && hasSubscription) {
+            try {
+                console.log('✅ Subscription active - fetching live LCL quotes...');
+                const quotes = await getLCLQuotes(
+                    { country: originCountry || origin, city: originCity || origin },
+                    { country: destCountry || destination, city: destCity || destination },
+                    { weight: totalWeight, volume: totalCbm }
+                );
+                
+                if (quotes && quotes.length > 0) {
+                    const bestQuote = quotes[0];
+                    const baseCost = bestQuote.price;
+                    const markup = MARKUP_CONFIG.lcl.standard;
+                    finalPrice = baseCost * (1 + markup);
+                    carrierInfo = `<div class="review-item"><span>Carrier:</span><strong>${bestQuote.carrier}</strong></div>
+                                    <div class="review-item"><span>Transit Time:</span><strong>${bestQuote.transitTime}</strong></div>`;
+                    
+                    // Cache the rate
+                    const cacheParams = { weight: totalWeight, volume: totalCbm };
+                    setCachedRates('lcl', originCity || origin, destCity || destination, cacheParams, [{
+                        carrierName: bestQuote.carrier,
+                        estimatedTransitTime: bestQuote.transitTime,
+                        totalCost: finalPrice,
+                        carrierType: 'Ocean Freight',
+                        chargeableWeight: totalWeight,
+                        chargeableWeightUnit: 'kg',
+                        weightBasis: 'Actual Weight',
+                        isSpecialOffer: false,
+                        costBreakdown: {
+                            baseShippingCost: baseCost,
+                            fuelSurcharge: 0,
+                            estimatedCustomsAndTaxes: 0,
+                            optionalInsuranceCost: 0,
+                            ourServiceFee: finalPrice - baseCost
+                        },
+                        serviceProvider: `SeaRates (${bestQuote.carrier})`
+                    }]);
+                    
+                    isRealQuote = true;
+                    showToast('✅ Live LCL rate! Valid for 24 hours.', 'success', 3000);
+                } else {
+                    throw new Error('No quotes returned from SeaRates');
+                }
+                
+            } catch (apiError: any) {
+                console.log('❌ SeaRates API error, falling back to AI:', apiError.message);
+            }
+        }
+        
+        // Step 3: Fallback to AI (free users or API error)
+        if (!isRealQuote) {
+            const reason = await getAPIUnavailableReason();
+            console.log(`💡 Using AI estimate: ${reason}`);
             
             // Fallback to Google Gemini AI
             if (!State.api) throw new Error("AI API not initialized.");
@@ -249,7 +304,13 @@ async function handleLclFormSubmit(e: Event) {
             finalPrice = baseCost * (1 + markup);
             carrierInfo = '<div class="review-item"><span>Source:</span><strong>AI Estimate</strong></div>';
             
-            showToast('AI-estimated quote. We\'ll email confirmed rates.', 'info', 4000);
+            if (!hasSubscription && State.isLoggedIn) {
+                showToast('💡 AI estimate - Upgrade to Premium ($9.99/mo) for live rates!', 'info', 5000);
+            } else if (!State.isLoggedIn) {
+                showToast('AI estimate. Log in & subscribe for live carrier rates.', 'info', 4000);
+            } else {
+                showToast('AI estimate - We\'ll email confirmed rates soon.', 'info', 4000);
+            }
         }
 
         const quoteContainer = document.getElementById('lcl-quote-container');

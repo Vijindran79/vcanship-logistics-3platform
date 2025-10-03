@@ -9,6 +9,8 @@ import { checkAndDecrementLookup } from './api';
 import { Type } from '@google/genai';
 import { getFCLQuotes, displayAPIUsage } from './searates-api';
 import { captureCustomerInfo, submitQuoteRequest } from './email-capture';
+import { isUserSubscribed, getAPIUnavailableReason } from './subscription';
+import { getCachedRates, setCachedRates, getCacheInfo } from './rate-cache';
 
 
 // --- MODULE STATE ---
@@ -332,44 +334,77 @@ async function handleFclFormSubmit(e: Event) {
         
         let quoteWithBreakdown: Quote;
         let isRealQuote = false;
+        let usedCache = false;
         
-        // Try SeaRates API first
-        try {
-            const searatesQuotes = await getFCLQuotes(origin, destination, containersForApi);
+        // Step 0: Check if user has subscription for live rates
+        const hasSubscription = await isUserSubscribed();
+        
+        // Step 1: Check cache first (for subscribed users)
+        if (hasSubscription) {
+            const cacheParams = { containers: containersForApi };
+            const cachedQuotes = getCachedRates('fcl', origin.city, destination.city, cacheParams);
             
-            if (searatesQuotes && searatesQuotes.length > 0) {
-                // Use the first (best) quote from SeaRates
-                const bestQuote = searatesQuotes[0];
-                const baseCost = bestQuote.price;
-                const markupCost = baseCost * (1 + MARKUP_CONFIG.fcl.standard);
-                
-                quoteWithBreakdown = {
-                    carrierName: bestQuote.carrier,
-                    estimatedTransitTime: bestQuote.transitTime,
-                    totalCost: markupCost,
-                    carrierType: "Ocean Carrier",
-                    chargeableWeight: 0,
-                    chargeableWeightUnit: 'N/A',
-                    weightBasis: 'Per Container',
-                    isSpecialOffer: false,
-                    costBreakdown: {
-                        baseShippingCost: baseCost,
-                        fuelSurcharge: 0,
-                        estimatedCustomsAndTaxes: 0,
-                        optionalInsuranceCost: 0,
-                        ourServiceFee: markupCost - baseCost
-                    },
-                    serviceProvider: `SeaRates (${bestQuote.carrier})`
-                };
-                
+            if (cachedQuotes && cachedQuotes.length > 0) {
+                quoteWithBreakdown = cachedQuotes[0];
                 isRealQuote = true;
-                showToast('Real-time carrier quote loaded successfully!', 'success', 3000);
-            } else {
-                throw new Error('No quotes returned from SeaRates API');
+                usedCache = true;
+                
+                const cacheInfo = getCacheInfo('fcl', origin.city, destination.city, cacheParams);
+                showToast(`✅ Using cached rate (valid for ${cacheInfo.hoursRemaining}h more)`, 'success', 3000);
+                console.log('[FCL] Using cached quote, saved 1 API call!');
             }
-            
-        } catch (apiError: any) {
-            console.log('SeaRates API unavailable, falling back to AI estimate:', apiError.message);
+        }
+        
+        // Step 2: Try SeaRates API (if subscribed and not cached)
+        if (!usedCache && hasSubscription) {
+            try {
+                console.log('✅ Subscription active - fetching live FCL quotes...');
+                const searatesQuotes = await getFCLQuotes(origin, destination, containersForApi);
+                
+                if (searatesQuotes && searatesQuotes.length > 0) {
+                    // Use the first (best) quote from SeaRates
+                    const bestQuote = searatesQuotes[0];
+                    const baseCost = bestQuote.price;
+                    const markupCost = baseCost * (1 + MARKUP_CONFIG.fcl.standard);
+                    
+                    quoteWithBreakdown = {
+                        carrierName: bestQuote.carrier,
+                        estimatedTransitTime: bestQuote.transitTime,
+                        totalCost: markupCost,
+                        carrierType: "Ocean Carrier",
+                        chargeableWeight: 0,
+                        chargeableWeightUnit: 'N/A',
+                        weightBasis: 'Per Container',
+                        isSpecialOffer: false,
+                        costBreakdown: {
+                            baseShippingCost: baseCost,
+                            fuelSurcharge: 0,
+                            estimatedCustomsAndTaxes: 0,
+                            optionalInsuranceCost: 0,
+                            ourServiceFee: markupCost - baseCost
+                        },
+                        serviceProvider: `SeaRates (${bestQuote.carrier})`
+                    };
+                    
+                    // Cache the rate for 24 hours
+                    const cacheParams = { containers: containersForApi };
+                    setCachedRates('fcl', origin.city, destination.city, cacheParams, [quoteWithBreakdown]);
+                    
+                    isRealQuote = true;
+                    showToast('✅ Real-time carrier quote! Valid for 24 hours.', 'success', 3000);
+                } else {
+                    throw new Error('No quotes returned from SeaRates API');
+                }
+                
+            } catch (apiError: any) {
+                console.log('❌ SeaRates API error, falling back to AI:', apiError.message);
+            }
+        }
+        
+        // Step 3: Fallback to AI estimate (free users or API error)
+        if (!isRealQuote) {
+            const reason = await getAPIUnavailableReason();
+            console.log(`💡 Using AI estimate: ${reason}`);
             
             // Fallback to Google Gemini AI
             if (!State.api) throw new Error("API not initialized");
@@ -417,10 +452,17 @@ async function handleFclFormSubmit(e: Event) {
                     optionalInsuranceCost: 0,
                     ourServiceFee: parsedResult.totalCost - (parsedResult.totalCost / (1 + MARKUP_CONFIG.fcl.standard))
                 },
-                serviceProvider: 'Vcanship AI Estimate'
+                serviceProvider: 'Vcanship AI Estimate',
+                isAIEstimate: true // Flag for upgrade prompt
             };
             
-            showToast('AI-estimated quote generated. We\'ll email confirmed rates.', 'info', 4000);
+            if (!hasSubscription && State.isLoggedIn) {
+                showToast('💡 AI estimate - Upgrade to Premium ($9.99/mo) for real carrier rates!', 'info', 5000);
+            } else if (!State.isLoggedIn) {
+                showToast('AI estimate. Log in & subscribe for live carrier rates.', 'info', 4000);
+            } else {
+                showToast('AI estimate - We\'ll email confirmed rates soon.', 'info', 4000);
+            }
         }
         
         // Generate compliance checklist (standard for all FCL shipments)
