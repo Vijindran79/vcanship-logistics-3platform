@@ -14,11 +14,14 @@ RUN if [ -f package-lock.json ]; then npm ci; \
 # Copy all source files
 COPY . .
 
-# Build the app (adjust if you use a different build command)
+# Build the app
 RUN npm run build
 
-# Expose port (change if your app uses a different port)
-EXPOSE 3000
+# Expose port 8080 (Cloud Run default)
+EXPOSE 8080
 
-# Start the app (adjust if you use a different start command)
+# Set environment variable for port
+ENV PORT=8080
+
+# Start the app with npm start
 CMD ["npm", "start"]
