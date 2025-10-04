@@ -1,0 +1,95 @@
+{
+  "header": {
+    "title": "VCanship",
+    "track": "Track",
+    "loginSignup": "Login / Sign Up",
+    "myAccount": "My Account"
+  },
+  "sidebar": {
+      "services": "Services",
+      "apiHub": "API Hub",
+      "helpCenter": "Help Center",
+      "vehicle": "Vehicle Shipping",
+      "railway": "Railway Freight",
+      "inland": "Inland Trucking",
+      "bulk": "Bulk & Charter",
+      "rivertug": "River Barge & Tug",
+      "warehouse": "Warehousing",
+      "schedules": "Schedules & Lanes",
+      "tradeFinance": "Trade Finance",
+      "ecommerce": "Launch Your Global Store",
+      "partner": "Become a Partner"
+  },
+  "footer": {
+    "helpCenter": "Help Center",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "inspectorPortal": "Inspector Portal",
+    "copyright": "© 2024 Vcanship by Vcan Resources. All Rights Reserved."
+  },
+  "landing": {
+    "seo": {
+      "business": "AI-Optimized Rates for UK to USA Parcels|Instant FCL & LCL Sea Freight Quotes|Global E-commerce Fulfillment & Last-Mile Delivery|Reliable RoRo & Container Vehicle Shipping Worldwide|Real-Time Air Freight Cargo Tracking & Booking|Cost-Effective International Baggage Shipping Solutions|On-Demand Warehousing Near Major Global Ports|Streamline Your Supply Chain with our Logistics API|Simplified Customs & Duties Calculation for Imports|Book Cross-Continent Railway Freight with Confidence|Unlock Capital with Integrated Trade Finance for Exporters|Hassle-Free Bulk Cargo & Vessel Chartering Services|Find the Cheapest Way to Ship Your Goods Internationally|Your Trusted Partner for Complex Project Cargo Logistics|Seamless Inland Trucking & Transportation Network",
+      "emotional": "Your Ambition, Our Mission. Delivered.|From Your Workshop to the World Stage.|Connecting Loved Ones, One Parcel at a Time.|The Confidence to Go Global.|Logistics Solved, So You Can Focus on Your Dream.|Bridging Distances, Delivering Happiness.|Your Supply Chain, Supercharged by AI.|More Than Shipping. It's a Partnership.|Peace of Mind in Every Shipment.|Your Next Big Move, Made Simple.|Empowering Your Business to Reach New Horizons.|The Care Package That Feels Like a Hug.|Your Classic Car, Transported with Passion.|Making a World of Difference for Your Business.|From a Click to a Customer's Door, Seamlessly."
+    },
+    "parcel_title": "Send a Parcel",
+    "parcel_subtitle": "Fast, affordable, international delivery",
+    "parcel_cta": "Get a Quote",
+    "parcel_from_label": "From",
+    "parcel_to_label": "To",
+    "parcel_weight_label": "Weight (kg)",
+    "parcel_origin_placeholder": "Origin Country/Postcode",
+    "parcel_dest_placeholder": "Destination Country/Postcode",
+    "parcel_weight_placeholder": "e.g., 2",
+    "air_freight_title": "Air Freight",
+    "air_freight_cta": "Book Air Freight",
+    "fcl_title": "FCL Shipping",
+    "fcl_cta": "Book FCL",
+    "lcl_title": "LCL Shipping",
+    "lcl_cta": "Book LCL",
+    "ecommerce_title": "E-commerce Solutions",
+    "ecommerce_subtitle": "Integrated fulfillment, warehousing, and last-mile delivery",
+    "ecommerce_cta": "Get Started",
+    "partner_title": "Become a Partner",
+    "partner_subtitle": "Join our global network of trusted carriers",
+    "partner_cta": "Register Now"
+  },
+  "parcel": {
+    "back_to_services": "Back to Services",
+    "title": "Send a Parcel",
+    "subtitle": "Enter your shipment details to get instant quotes.",
+    "pickup_option": "Pickup Option",
+    "schedule_pickup": "Schedule Pickup",
+    "schedule_pickup_desc": "We'll collect from your address.",
+    "drop_off": "I'll Drop it Off",
+    "drop_off_desc": "Find a nearby location.",
+    "origin": "Origin",
+    "destination": "Destination",
+    "full_name": "Full Name",
+    "street_address": "Street Address",
+    "city": "City",
+    "postcode": "Postcode / ZIP",
+    "country": "Country",
+    "package_details": "Package Details",
+    "weight_kg": "Weight (kg)",
+    "length_cm": "Length (cm)",
+    "width_cm": "Width (cm)",
+    "height_cm": "Height (cm)",
+    "item_details": "Item Details",
+    "description": "Description",
+    "hs_code_optional": "HS Code (Optional)",
+    "get_quotes": "Get Quotes"
+  },
+  "modals": {
+      "track": {
+          "title": "Track Your Shipment"
+      },
+      "locale": {
+          "title": "Select Region & Language",
+          "description": "Your selection will update currency and language options across the site.",
+          "search_placeholder": "Search by country or code...",
+          "cancel": "Cancel",
+          "confirm": "Confirm"
+      }
+  }
+}

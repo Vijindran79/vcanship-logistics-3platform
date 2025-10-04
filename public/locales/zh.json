@@ -1,0 +1,95 @@
+{
+  "header": {
+    "title": "VCanship",
+    "track": "追踪",
+    "loginSignup": "登录 / 注册",
+    "myAccount": "我的账户"
+  },
+  "sidebar": {
+    "services": "服务",
+    "apiHub": "API中心",
+    "helpCenter": "帮助中心",
+    "vehicle": "车辆运输",
+    "railway": "铁路货运",
+    "inland": "内陆卡车运输",
+    "bulk": "散货和包船",
+    "rivertug": "内河驳船和拖船",
+    "warehouse": "仓储",
+    "schedules": "船期和航线",
+    "tradeFinance": "贸易融资",
+    "ecommerce": "启动您的全球商店",
+    "partner": "成为合作伙伴"
+  },
+  "footer": {
+    "helpCenter": "帮助中心",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款",
+    "copyright": "© 2024 Vcanship by Vcan Resources. 版权所有。"
+  },
+  "landing": {
+    "seo": {
+      "business": "AI优化的英国至美国包裹费率|即时整箱和拼箱海运报价|全球电商履约和最后一英里派送|可靠的全球滚装和集装箱车辆运输|实时空运货物追踪和预订|经济高效的国际行李运输解决方案|全球主要港口附近的按需仓储|使用我们的物流API简化您的供应链|简化的进口关税和税费计算|放心预订跨洲铁路货运|通过为出口商提供的综合贸易融资释放资金|无忧的散货和船舶租赁服务|寻找最便宜的国际货物运输方式|您值得信赖的复杂项目货物物流合作伙伴|无缝的内陆卡车运输和运输网络",
+      "emotional": "您的雄心，我们的使命。已送达。|从您的车间走向世界舞台。|连接亲人，一次一包裹。|走向全球的信心。|物流问题已解决，让您专注于梦想。|跨越距离，传递幸福。|您的供应链，由AI强力驱动。|不只是运输。这是一种伙伴关系。|每次运输都让您安心。|您的下一个重大举措，变得简单。|助力您的业务达到新高度。|感觉像拥抱的关怀包裹。|您的经典汽车，充满激情地运输。|为您的业务带来世界级的改变。|从点击到客户门口，无缝衔接。"
+    },
+    "parcel_title": "寄送包裹",
+    "parcel_subtitle": "快速、实惠的国际递送服务",
+    "parcel_cta": "获取报价",
+
+    "parcel_from_label": "从",
+    "parcel_to_label": "到",
+    "parcel_weight_label": "重量 (kg)",
+    "parcel_origin_placeholder": "始发国/邮政编码",
+    "parcel_dest_placeholder": "目的国/邮政编码",
+    "parcel_weight_placeholder": "例如: 2",
+    "air_freight_title": "空运",
+    "air_freight_cta": "预订空运",
+    "fcl_title": "整箱运输 (FCL)",
+    "fcl_cta": "预订FCL",
+    "lcl_title": "拼箱运输 (LCL)",
+    "lcl_cta": "预订LCL",
+    "ecommerce_title": "电子商务解决方案",
+    "ecommerce_subtitle": "综合履行、仓储和最后一英里派送",
+    "ecommerce_cta": "开始使用",
+    "partner_title": "成为合作伙伴",
+    "partner_subtitle": "加入我们值得信赖的全球承运商网络",
+    "partner_cta": "立即注册"
+  },
+  "parcel": {
+    "back_to_services": "返回服务",
+    "title": "寄送包裹",
+    "subtitle": "输入您的货运详情以获取即时报价。",
+    "pickup_option": "取件选项",
+    "schedule_pickup": "安排取件",
+    "schedule_pickup_desc": "我们将从您的地址取件。",
+    "drop_off": "自行投递",
+    "drop_off_desc": "查找附近的地点。",
+    "origin": "始发地",
+    "destination": "目的地",
+    "full_name": "全名",
+    "street_address": "街道地址",
+    "city": "城市",
+    "postcode": "邮政编码 / ZIP",
+    "country": "国家",
+    "package_details": "包裹详情",
+    "weight_kg": "重量 (kg)",
+    "length_cm": "长度 (cm)",
+    "width_cm": "宽度 (cm)",
+    "height_cm": "高度 (cm)",
+    "item_details": "物品详情",
+    "description": "描述",
+    "hs_code_optional": "HS编码 (可选)",
+    "get_quotes": "获取报价"
+  },
+  "modals": {
+      "track": {
+          "title": "追踪您的货物"
+      },
+      "locale": {
+          "title": "选择地区和语言",
+          "description": "您的选择将更新整个网站的货币和语言选项。",
+          "search_placeholder": "按国家或代码搜索...",
+          "cancel": "取消",
+          "confirm": "确认"
+      }
+  }
+}
