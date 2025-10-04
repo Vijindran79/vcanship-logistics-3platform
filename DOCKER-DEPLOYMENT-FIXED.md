@@ -82,9 +82,11 @@ Cloud Run will automatically:
 
 ### Stage 1: Builder
 - Uses Node.js 20 Alpine
-- Installs dependencies
+- Installs **ALL** dependencies (including devDependencies like vite)
+- Runs `npm ci` to install everything needed for build
 - Builds production files (`npm run build`)
 - Creates optimized `/dist` folder
+- Note: vite and other build tools MUST be installed here
 
 ### Stage 2: Production Server
 - Uses nginx Alpine (tiny, fast)
