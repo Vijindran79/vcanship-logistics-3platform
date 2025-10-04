@@ -457,11 +457,20 @@ async function handleDetailsFormSubmit(e: Event) {
         showToast('Real-time carrier rates loaded from Shippo!', 'success', 3000);
         renderResults(response, origin, destination);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error getting quotes:', error);
-        showToast('Could not fetch carrier rates. Please verify addresses and try again.', 'error');
+        const errorMessage = error.message || 'Unknown error';
+        showToast(`API Error: ${errorMessage}. Check console for details.`, 'error', 5000);
         if (quotesContainer) {
-            quotesContainer.innerHTML = '<p class="error-text" style="text-align:center; padding: 2rem;">Sorry, we couldn\'t fetch quotes at this time. Please verify your addresses and try again.</p>';
+            quotesContainer.innerHTML = `
+                <div style="text-align:center; padding: 2rem;">
+                    <p class="error-text" style="margin-bottom: 1rem;">❌ Could not fetch carrier rates</p>
+                    <p style="color: var(--medium-gray); font-size: 0.9rem;">Error: ${errorMessage}</p>
+                    <p style="color: var(--medium-gray); font-size: 0.9rem; margin-top: 0.5rem;">
+                        This usually means the Shippo API is not configured. Please contact support.
+                    </p>
+                </div>
+            `;
         }
     }
 }
