@@ -1,27 +1,32 @@
-# Use official Node.js LTS image
-FROM node:20-alpine
+# Multi-stage build for production
+# Stage 1: Build the application
+FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
-RUN if [ -f package-lock.json ]; then npm ci; \
-    elif [ -f pnpm-lock.yaml ]; then npm install -g pnpm && pnpm install; \
-    elif [ -f yarn.lock ]; then yarn install; \
-    else npm install; fi
+# Copy package files
+COPY package.json package-lock.json* ./
 
-# Copy all source files
+# Install dependencies
+RUN npm ci --only=production || npm install
+
+# Copy source files
 COPY . .
 
-# Build the app
+# Build the application
 RUN npm run build
 
-# Expose port 8080 (Cloud Run default)
+# Stage 2: Production server with nginx
+FROM nginx:alpine
+
+# Copy built files from builder stage
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 8080 (Cloud Run requirement)
 EXPOSE 8080
 
-# Set environment variable for port
-ENV PORT=8080
-
-# Start the app with npm start
-CMD ["npm", "start"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
