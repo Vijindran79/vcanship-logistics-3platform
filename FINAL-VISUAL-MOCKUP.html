@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vcanship - Improved Landing Page with SIDEBAR</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { font-family: 'Poppins', sans-serif; background: #f3f4f6; }
+
+        .app-container { display: flex; min-height: 100vh; }
+
+        /* YOUR SIDEBAR - UNCHANGED! */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            padding: 2rem 1rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            padding-left: 1rem;
+        }
+
+        .sidebar-logo strong { color: #111827; }
+        .sidebar-logo span { color: #F97316; }
+
+        .sidebar-section { margin-bottom: 2rem; }
+
+        .sidebar-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #6B7280;
+            margin-bottom: 0.5rem;
+            padding-left: 1rem;
+            font-weight: 600;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1F2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-item:hover {
+            background: #FFF7ED;
+            color: #F97316;
+        }
+
+        .sidebar-item.active {
+            background: #F97316;
+            color: white;
+        }
+
+        .sidebar-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+        }
+
+        /* MAIN CONTENT */
+        .main-content { flex: 1; background: #f3f4f6; }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .header-btn {
+            padding: 0.5rem 1.25rem;
+            border: 2px solid #D1D5DB;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .header-btn:hover {
+            border-color: #F97316;
+            transform: translateY(-2px);
+        }
+
+        /* ✨ IMPROVED HERO SECTION */
+        .hero-section {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 4rem 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .hero-highlight { color: #fbbf24; }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.95;
+            margin-bottom: 2rem;
+            max-width: 700px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .hero-stat i {
+            font-size: 1.5rem;
+            color: #fbbf24;
+        }
+
+        .hero-stat-text strong {
+            display: block;
+            font-size: 1.1rem;
+        }
+
+        .hero-stat-text span {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* ✨ QUICK QUOTE CARD */
+        .quick-quote-section {
+            padding: 2rem 3rem;
+            max-width: 1200px;
+            margin: -3rem auto 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .quick-quote-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .quote-header { margin-bottom: 2rem; }
+
+        .quote-header h2 {
+            font-size: 1.75rem;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .quote-header p { color: #6B7280; }
+
+        .service-tabs {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .service-tab {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #E5E7EB;
+            background: #F9FAFB;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .service-tab:hover {
+            border-color: #F97316;
+            transform: translateY(-2px);
+        }
+
+        .service-tab.active {
+            background: #F97316;
+            color: white;
+            border-color: #F97316;
+        }
+
+        .service-tab i { font-size: 1.1rem; }
+
+        .quote-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            align-items: end;
+        }
+
+        .form-field label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+
+        .form-field input,
+        .form-field select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: #F97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #F97316 0%, #FB923C 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+        }
+
+        /* ✨ SERVICES GRID WITH BADGES */
+        .services-section {
+            padding: 4rem 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title p {
+            font-size: 1.1rem;
+            color: #6B7280;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 2px solid #E5E7EB;
+            transition: all 0.3s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            border-color: #F97316;
+        }
+
+        .service-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #F97316;
+            color: white;
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .service-badge.new { background: #10B981; }
+        .service-badge.fastest { background: #EF4444; }
+
+        .service-icon {
+            font-size: 3rem;
+            color: #F97316;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-card h3 {
+            font-size: 1.5rem;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-card p {
+            color: #6B7280;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .service-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #4B5563;
+            font-size: 0.9rem;
+        }
+
+        .service-features li i {
+            color: #10B981;
+            font-size: 0.85rem;
+        }
+
+        .service-cta {
+            width: 100%;
+            padding: 0.75rem;
+            background: #F9FAFB;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #111827;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .service-cta:hover {
+            background: #F97316;
+            color: white;
+        }
+
+        /* Trust Section */
+        .trust-section {
+            background: white;
+            padding: 3rem;
+            text-align: center;
+            margin: 2rem 3rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .trust-stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .trust-stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #F97316;
+            display: block;
+        }
+
+        .trust-stat-label {
+            color: #6B7280;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; }
+            .hero-section h1 { font-size: 2rem; }
+            .quote-form { grid-template-columns: 1fr; }
+            .services-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- ✅ YOUR SIDEBAR NAVIGATION (KEPT AS IS!) -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <strong>Vcan</strong><span>Ship</span>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">MAIN</div>
+                <div class="sidebar-item active">
+                    <i class="fas fa-home"></i>
+                    <span>Services</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-table-columns"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-map-location-dot"></i>
+                    <span>Track Shipment</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">SHIPPING SERVICES</div>
+                <div class="sidebar-item">
+                    <i class="fas fa-box"></i>
+                    <span>Parcel</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-suitcase"></i>
+                    <span>Excess Baggage</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-ship"></i>
+                    <span>Sea Freight (FCL)</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-boxes-packing"></i>
+                    <span>Sea Freight (LCL)</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-plane-departure"></i>
+                    <span>Air Freight</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-truck"></i>
+                    <span>Inland Trucking</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-store"></i>
+                    <span>E-commerce Hub</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">RESOURCES</div>
+                <div class="sidebar-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help Center</span>
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-code"></i>
+                    <span>API Hub</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ✨ IMPROVED MAIN CONTENT AREA -->
+        <main class="main-content">
+            <header class="header">
+                <div style="font-weight: 600; color: #111827;">Welcome back! 👋</div>
+                <div class="header-actions">
+                    <button class="header-btn">🌐 EN</button>
+                    <button class="header-btn">💰 USD ($)</button>
+                    <button class="header-btn">🌙 Theme</button>
+                    <button class="header-btn" style="background: #F97316; color: white; border-color: #F97316;">Login</button>
+                </div>
+            </header>
+
+            <!-- 1️⃣ HERO FIRST (Purple Gradient) -->
+            <section class="hero-section">
+                <div class="hero-content">
+                    <h1>Ship Smarter with <span class="hero-highlight">AI-Powered</span> Logistics</h1>
+                    <p class="hero-subtitle">
+                        From a single parcel to full container loads - Get instant quotes from 200+ carriers worldwide. No hidden fees, no surprises.
+                    </p>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <i class="fas fa-shipping-fast"></i>
+                            <div class="hero-stat-text">
+                                <strong>50,000+</strong>
+                                <span>Shipments Delivered</span>
+                            </div>
+                        </div>
+                        <div class="hero-stat">
+                            <i class="fas fa-globe"></i>
+                            <div class="hero-stat-text">
+                                <strong>220+</strong>
+                                <span>Countries Covered</span>
+                            </div>
+                        </div>
+                        <div class="hero-stat">
+                            <i class="fas fa-star"></i>
+                            <div class="hero-stat-text">
+                                <strong>98%</strong>
+                                <span>Satisfaction Rate</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2️⃣ CALCULATOR SECOND (White Card) -->
+            <section class="quick-quote-section">
+                <div class="quick-quote-card">
+                    <div class="quote-header">
+                        <h2>Get Your Instant Quote</h2>
+                        <p>Compare rates from top carriers in seconds</p>
+                    </div>
+
+                    <div class="service-tabs">
+                        <button class="service-tab active">
+                            <i class="fas fa-box"></i> Parcel
+                        </button>
+                        <button class="service-tab">
+                            <i class="fas fa-ship"></i> Sea Freight
+                        </button>
+                        <button class="service-tab">
+                            <i class="fas fa-plane"></i> Air Freight
+                        </button>
+                        <button class="service-tab">
+                            <i class="fas fa-truck"></i> Inland
+                        </button>
+                    </div>
+
+                    <form class="quote-form">
+                        <div class="form-field">
+                            <label>From</label>
+                            <input type="text" placeholder="City or Country" value="New York, USA">
+                        </div>
+                        <div class="form-field">
+                            <label>To</label>
+                            <input type="text" placeholder="City or Country" value="London, UK">
+                        </div>
+                        <div class="form-field">
+                            <label>Weight (kg)</label>
+                            <input type="number" placeholder="5" value="5">
+                        </div>
+                        <div class="form-field">
+                            <label>Dimensions</label>
+                            <input type="text" placeholder="30 x 20 x 15 cm" value="30 x 20 x 15">
+                        </div>
+                        <div class="form-field">
+                            <button type="button" class="submit-btn">
+                                Compare Rates <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- 3️⃣ SERVICES THIRD (With Badges!) -->
+            <section class="services-section">
+                <div class="section-title">
+                    <h2>Our Shipping Services</h2>
+                    <p>Complete logistics solutions for every business need</p>
+                </div>
+
+                <div class="services-grid">
+                    <div class="service-card">
+                        <span class="service-badge">Most Popular</span>
+                        <i class="fas fa-box service-icon"></i>
+                        <h3>Express Parcel</h3>
+                        <p>Global door-to-door delivery with world's best carriers</p>
+                        <ul class="service-features">
+                            <li><i class="fas fa-check-circle"></i> Real-time tracking</li>
+                            <li><i class="fas fa-check-circle"></i> DHL, FedEx, UPS rates</li>
+                            <li><i class="fas fa-check-circle"></i> 2-5 day delivery</li>
+                            <li><i class="fas fa-check-circle"></i> Insurance included</li>
+                        </ul>
+                        <button class="service-cta">
+                            Get Quote <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="service-card">
+                        <span class="service-badge fastest">Fastest</span>
+                        <i class="fas fa-plane-departure service-icon"></i>
+                        <h3>Air Freight</h3>
+                        <p>Fast and reliable air cargo for urgent shipments</p>
+                        <ul class="service-features">
+                            <li><i class="fas fa-check-circle"></i> 24-72 hour transit</li>
+                            <li><i class="fas fa-check-circle"></i> Direct flights available</li>
+                            <li><i class="fas fa-check-circle"></i> Dangerous goods certified</li>
+                            <li><i class="fas fa-check-circle"></i> Priority handling</li>
+                        </ul>
+                        <button class="service-cta">
+                            Get Quote <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="service-card">
+                        <span class="service-badge new">New</span>
+                        <i class="fas fa-store service-icon"></i>
+                        <h3>E-commerce Hub</h3>
+                        <p>Integrated shipping for online sellers</p>
+                        <ul class="service-features">
+                            <li><i class="fas fa-check-circle"></i> Multi-carrier integration</li>
+                            <li><i class="fas fa-check-circle"></i> Automated order sync</li>
+                            <li><i class="fas fa-check-circle"></i> Bulk label printing</li>
+                            <li><i class="fas fa-check-circle"></i> Returns management</li>
+                        </ul>
+                        <button class="service-cta">
+                            Get Quote <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="service-card">
+                        <i class="fas fa-boxes-stacked service-icon"></i>
+                        <h3>Sea Freight (FCL)</h3>
+                        <p>Full container load for large shipments</p>
+                        <ul class="service-features">
+                            <li><i class="fas fa-check-circle"></i> 20ft & 40ft containers</li>
+                            <li><i class="fas fa-check-circle"></i> Port-to-door service</li>
+                            <li><i class="fas fa-check-circle"></i> Competitive rates</li>
+                            <li><i class="fas fa-check-circle"></i> Customs clearance</li>
+                        </ul>
+                        <button class="service-cta">
+                            Get Quote <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="service-card">
+                        <i class="fas fa-boxes-packing service-icon"></i>
+                        <h3>Sea Freight (LCL)</h3>
+                        <p>Cost-effective shared container space</p>
+                        <ul class="service-features">
+                            <li><i class="fas fa-check-circle"></i> Min. 1 CBM shipment</li>
+                            <li><i class="fas fa-check-circle"></i> Weekly schedules</li>
+                            <li><i class="fas fa-check-circle"></i> Cargo consolidation</li>
+                            <li><i class="fas fa-check-circle"></i> Port-to-port</li>
+                        </ul>
+                        <button class="service-cta">
+                            Get Quote <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                    <div class="service-card">
+                        <i class="fas fa-truck service-icon"></i>
+                        <h3>Inland Trucking</h3>
+                        <p>FTL and LTL domestic transport</p>
+                        <ul class="service-features">
+                            <li><i class="fas fa-check-circle"></i> Same-day pickup</li>
+                            <li><i class="fas fa-check-circle"></i> Temperature controlled</li>
+                            <li><i class="fas fa-check-circle"></i> Cross-border shipping</li>
+                            <li><i class="fas fa-check-circle"></i> White glove service</li>
+                        </ul>
+                        <button class="service-cta">
+                            Get Quote <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="trust-section">
+                <div class="trust-stats">
+                    <div>
+                        <span class="trust-stat-number">50K+</span>
+                        <span class="trust-stat-label">Happy Customers</span>
+                    </div>
+                    <div>
+                        <span class="trust-stat-number">220+</span>
+                        <span class="trust-stat-label">Countries Served</span>
+                    </div>
+                    <div>
+                        <span class="trust-stat-number">98%</span>
+                        <span class="trust-stat-label">On-Time Delivery</span>
+                    </div>
+                    <div>
+                        <span class="trust-stat-number">24/7</span>
+                        <span class="trust-stat-label">Support Available</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.querySelectorAll('.service-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.service-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

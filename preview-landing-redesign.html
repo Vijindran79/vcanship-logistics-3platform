@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vcanship Landing Page - Redesign Preview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary-orange: #F97316;
+            --dark-gray: #111827;
+            --medium-gray: #6B7280;
+            --light-gray: #F3F4F6;
+            --text-color: #1F2937;
+            --background-color: #ffffff;
+            --card-border-radius: 12px;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-color: #D1D5DB;
+            --success-color: #10B981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-gray);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Comparison Banner */
+        .comparison-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .comparison-banner i {
+            margin-right: 0.5rem;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            align-items: center;
+            padding: 1rem 2rem;
+            background-color: var(--background-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            color: var(--dark-gray);
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+            font-weight: 700;
+        }
+
+        .logo span {
+            color: var(--primary-orange);
+        }
+
+        .header-nav {
+            margin-left: auto;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: none;
+            border: 2px solid var(--border-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+        }
+
+        /* IMPROVED HERO SECTION */
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero-section h1 {
+            font-size: clamp(2.5rem, 5vw, 4.5rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-highlight {
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-features {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .hero-feature {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .hero-feature i {
+            color: #FFD700;
+            font-size: 1.3rem;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: var(--dark-gray);
+            transform: translateY(-3px);
+        }
+
+        /* QUICK CALCULATOR SECTION */
+        .quick-calculator-section {
+            background: var(--background-color);
+            padding: 3rem 2rem;
+            margin: -3rem auto 0;
+            max-width: 1100px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .calculator-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .calculator-header h2 {
+            font-size: 2rem;
+            color: var(--dark-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .calculator-header p {
+            color: var(--medium-gray);
+            font-size: 1.1rem;
+        }
+
+        .calculator-tabs {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .calc-tab {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border-color);
+            background: var(--light-gray);
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .calc-tab:hover {
+            border-color: var(--primary-orange);
+            transform: translateY(-2px);
+        }
+
+        .calc-tab.active {
+            background: var(--primary-orange);
+            color: white;
+            border-color: var(--primary-orange);
+        }
+
+        .calc-tab i {
+            font-size: 1.2rem;
+        }
+
+        .calculator-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--dark-gray);
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-orange);
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+
+        .calc-submit {
+            background: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .calc-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+
+        /* SERVICES GRID SECTION */
+        .services-section {
+            padding: 5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            color: var(--dark-gray);
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            font-size: 1.2rem;
+            color: var(--medium-gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: var(--background-color);
+            padding: 2rem;
+            border-radius: var(--card-border-radius);
+            box-shadow: var(--card-shadow);
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-orange), #FB923C);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .service-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .service-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            border-color: var(--primary-orange);
+        }
+
+        .service-card.popular {
+            border-color: var(--primary-orange);
+            border-width: 3px;
+        }
+
+        .service-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-orange);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .service-icon {
+            font-size: 3rem;
+            color: var(--primary-orange);
+            margin-bottom: 1.5rem;
+        }
+
+        .service-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark-gray);
+        }
+
+        .service-card p {
+            color: var(--medium-gray);
+            margin-bottom: 1.5rem;
+        }
+
+        .service-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-features li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--medium-gray);
+            font-size: 0.9rem;
+        }
+
+        .service-features li i {
+            color: var(--success-color);
+            font-size: 0.9rem;
+        }
+
+        .service-cta {
+            background: var(--light-gray);
+            color: var(--dark-gray);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .service-cta:hover {
+            background: var(--primary-orange);
+            color: white;
+        }
+
+        /* Trust Indicators */
+        .trust-section {
+            background: var(--light-gray);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .trust-stats {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            flex-wrap: wrap;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .trust-stat {
+            text-align: center;
+        }
+
+        .trust-stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-orange);
+            display: block;
+        }
+
+        .trust-stat-label {
+            color: var(--medium-gray);
+            font-size: 1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 3rem 1rem;
+            }
+
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .hero-cta-group {
+                flex-direction: column;
+            }
+
+            .quick-calculator-section {
+                margin: -2rem 1rem 0;
+                padding: 2rem 1rem;
+            }
+
+            .calculator-form {
+                grid-template-columns: 1fr;
+            }
+
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .trust-stats {
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Comparison Banner -->
+    <div class="comparison-banner">
+        <i class="fas fa-paint-brush"></i>
+        PREVIEW ONLY - This is how your landing page could look with improved structure
+    </div>
+
+    <!-- Header -->
+    <header>
+        <a href="#" class="logo"><strong>Vcan</strong><span>Ship</span></a>
+        <div class="header-nav">
+            <button class="btn">Track</button>
+            <button class="btn">Login</button>
+        </div>
+    </header>
+
+    <!-- ✨ IMPROVED HERO SECTION (Now First!) -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>
+                Ship Smarter with <span class="hero-highlight">AI-Powered</span> Global Logistics
+            </h1>
+            <p class="hero-subtitle">
+                From a single parcel to full container loads, we find you the cheapest rates across 220+ countries. Real carrier quotes in seconds, not hours.
+            </p>
+            
+            <div class="hero-features">
+                <div class="hero-feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Instant Live Quotes</span>
+                </div>
+                <div class="hero-feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>AI Rate Comparison</span>
+                </div>
+                <div class="hero-feature">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Door-to-Door Tracking</span>
+                </div>
+            </div>
+
+            <div class="hero-cta-group">
+                <button class="btn-primary">
+                    Get Instant Quote <i class="fas fa-arrow-right"></i>
+                </button>
+                <button class="btn-secondary">
+                    Watch Demo <i class="fas fa-play"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ✨ QUICK CALCULATOR (Now Second!) -->
+    <section class="quick-calculator-section">
+        <div class="calculator-header">
+            <h2>Get Your Instant Quote</h2>
+            <p>Choose your shipping type and see real rates from top carriers</p>
+        </div>
+
+        <div class="calculator-tabs">
+            <button class="calc-tab active">
+                <i class="fas fa-box"></i> Parcel
+            </button>
+            <button class="calc-tab">
+                <i class="fas fa-ship"></i> Sea Freight
+            </button>
+            <button class="calc-tab">
+                <i class="fas fa-plane"></i> Air Freight
+            </button>
+            <button class="calc-tab">
+                <i class="fas fa-truck"></i> Land Transport
+            </button>
+        </div>
+
+        <form class="calculator-form">
+            <div class="form-group">
+                <label>From</label>
+                <input type="text" placeholder="City or Postal Code" value="New York, USA">
+            </div>
+            <div class="form-group">
+                <label>To</label>
+                <input type="text" placeholder="City or Postal Code" value="London, UK">
+            </div>
+            <div class="form-group">
+                <label>Weight (kg)</label>
+                <input type="number" placeholder="5" value="5">
+            </div>
+            <div class="form-group">
+                <label>Dimensions (cm)</label>
+                <input type="text" placeholder="30 x 20 x 15" value="30 x 20 x 15">
+            </div>
+            <div class="form-group">
+                <button type="button" class="calc-submit">
+                    Compare Rates <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- ✨ SERVICES GRID (Now Third!) -->
+    <section class="services-section">
+        <div class="section-header">
+            <h2>Our Shipping Services</h2>
+            <p>Complete logistics solutions for businesses of all sizes</p>
+        </div>
+
+        <div class="services-grid">
+            <!-- Popular Service -->
+            <div class="service-card popular">
+                <span class="service-badge">Most Popular</span>
+                <i class="fas fa-box service-icon"></i>
+                <h3>Express Parcel</h3>
+                <p>Global door-to-door delivery with the world's best carriers</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> Real-time tracking</li>
+                    <li><i class="fas fa-check"></i> DHL, FedEx, UPS rates</li>
+                    <li><i class="fas fa-check"></i> 2-5 day delivery</li>
+                    <li><i class="fas fa-check"></i> Free insurance included</li>
+                </ul>
+                <button class="service-cta">
+                    Get Quote <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Sea Freight FCL -->
+            <div class="service-card">
+                <i class="fas fa-boxes-stacked service-icon"></i>
+                <h3>Sea Freight (FCL)</h3>
+                <p>Full container load for large shipments</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> 20ft & 40ft containers</li>
+                    <li><i class="fas fa-check"></i> Port-to-port or door-to-door</li>
+                    <li><i class="fas fa-check"></i> Competitive ocean rates</li>
+                    <li><i class="fas fa-check"></i> Customs clearance support</li>
+                </ul>
+                <button class="service-cta">
+                    Get Quote <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Air Freight -->
+            <div class="service-card">
+                <span class="service-badge">Fastest</span>
+                <i class="fas fa-plane-departure service-icon"></i>
+                <h3>Air Freight</h3>
+                <p>Fast and reliable air cargo for urgent shipments</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> 24-72 hour transit</li>
+                    <li><i class="fas fa-check"></i> Direct & consolidated flights</li>
+                    <li><i class="fas fa-check"></i> Dangerous goods certified</li>
+                    <li><i class="fas fa-check"></i> Priority handling</li>
+                </ul>
+                <button class="service-cta">
+                    Get Quote <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- LCL -->
+            <div class="service-card">
+                <i class="fas fa-boxes-packing service-icon"></i>
+                <h3>Sea Freight (LCL)</h3>
+                <p>Shared container space for smaller loads</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> Cost-effective solution</li>
+                    <li><i class="fas fa-check"></i> Min. 1 CBM shipment</li>
+                    <li><i class="fas fa-check"></i> Weekly sailing schedules</li>
+                    <li><i class="fas fa-check"></i> Cargo consolidation</li>
+                </ul>
+                <button class="service-cta">
+                    Get Quote <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- E-commerce -->
+            <div class="service-card">
+                <span class="service-badge">New</span>
+                <i class="fas fa-store service-icon"></i>
+                <h3>E-commerce Hub</h3>
+                <p>Integrated shipping for online sellers</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> Multi-carrier integration</li>
+                    <li><i class="fas fa-check"></i> Automated order sync</li>
+                    <li><i class="fas fa-check"></i> Bulk label printing</li>
+                    <li><i class="fas fa-check"></i> Returns management</li>
+                </ul>
+                <button class="service-cta">
+                    Get Quote <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Inland Trucking -->
+            <div class="service-card">
+                <i class="fas fa-truck service-icon"></i>
+                <h3>Inland Trucking</h3>
+                <p>FTL and LTL for domestic transport</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> Same-day pickup available</li>
+                    <li><i class="fas fa-check"></i> Temperature controlled</li>
+                    <li><i class="fas fa-check"></i> Cross-border shipping</li>
+                    <li><i class="fas fa-check"></i> White glove delivery</li>
+                </ul>
+                <button class="service-cta">
+                    Get Quote <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Indicators -->
+    <section class="trust-section">
+        <div class="trust-stats">
+            <div class="trust-stat">
+                <span class="trust-stat-number">50K+</span>
+                <span class="trust-stat-label">Shipments Delivered</span>
+            </div>
+            <div class="trust-stat">
+                <span class="trust-stat-number">220+</span>
+                <span class="trust-stat-label">Countries Covered</span>
+            </div>
+            <div class="trust-stat">
+                <span class="trust-stat-number">98%</span>
+                <span class="trust-stat-label">Customer Satisfaction</span>
+            </div>
+            <div class="trust-stat">
+                <span class="trust-stat-number">24/7</span>
+                <span class="trust-stat-label">Support Available</span>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Tab switching demo
+        document.querySelectorAll('.calc-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.calc-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Smooth scroll to calculator
+        document.querySelector('.btn-primary').addEventListener('click', () => {
+            document.querySelector('.quick-calculator-section').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'center'
+            });
+        });
+    </script>
+</body>
+</html>
