@@ -1,4 +1,21 @@
+# Robots.txt for Vcanship - vcanresources.com
+# Optimized for search engine crawling
+
 User-agent: *
 Allow: /
+Disallow: /auth/callback
+Disallow: /auth/reset-password
 
-Sitemap: https://vcanship.com/sitemap.xml
+# Crawl optimization
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://vcanresources.com/sitemap.xml
+
+# Specific search engine bots
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
