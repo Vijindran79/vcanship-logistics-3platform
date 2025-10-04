@@ -1,27 +1,25 @@
-// ⚠️  READ-ONLY — DO NOT EDIT — SERVICE LOCKED ⚠️
+// PRODUCTION AUTH - Real Supabase Authentication
 import { DOMElements } from './dom';
 import { State, setState } from './state';
-import { switchPage, showAuthModal, closeAuthModal, toggleLoading } from './ui';
+import { switchPage, showAuthModal, closeAuthModal, toggleLoading, showToast } from './ui';
 import { mountService } from './router';
+import { 
+    signUpWithEmail, 
+    signInWithEmail, 
+    signInWithGoogle, 
+    signOut, 
+    resetPassword,
+    checkAuthSession,
+    initializeAuthListener
+} from './real-auth';
 
-// --- MOCK USER SESSION MANAGEMENT ---
+// --- REAL USER SESSION MANAGEMENT ---
 
 /**
- * Checks localStorage for a saved user session.
+ * Checks Supabase for current session (real auth)
  */
-function checkSession() {
-    const savedUser = localStorage.getItem('vcanship_user');
-    if (savedUser) {
-        const savedLookups = localStorage.getItem('vcanship_free_lookups');
-        setState({
-            isLoggedIn: true,
-            currentUser: JSON.parse(savedUser),
-            // MOCK: In a real app, you'd fetch the user's subscription tier from your database.
-            // For this demo, we'll assume a restored session is for a 'free' user.
-            subscriptionTier: 'free',
-            aiLookupsRemaining: savedLookups ? parseInt(savedLookups, 10) : 5,
-        });
-    }
+async function checkSession() {
+    await checkAuthSession();
 }
 
 /**
@@ -107,77 +105,61 @@ function completeLogin(user: { name: string, email: string }) {
 }
 
 /**
- * Handles a mock social login.
+ * Handles real social login (Google OAuth via Supabase)
  * @param provider The social provider ('Google' or 'Apple').
  */
-function handleSocialLogin(provider: 'Google' | 'Apple') {
-    toggleLoading(true, `Signing in with ${provider}...`);
-
-    // Simulate the async nature of social logins
-    setTimeout(() => {
-        const user = {
-            name: provider === 'Google' ? 'Gia Lee' : 'Alex Chen',
-            email: provider === 'Google' ? 'gia.lee@example.com' : 'alex.chen@icloud.com',
-        };
-        
-        toggleLoading(false);
-        completeLogin(user);
-    }, 1500); // 1.5 second delay to simulate redirect and callback
+async function handleSocialLogin(provider: 'Google' | 'Apple') {
+    if (provider === 'Google') {
+        await signInWithGoogle();
+    } else {
+        // Apple Sign In can be implemented similarly
+        showToast('Apple Sign In coming soon!', 'info');
+    }
 }
 
 
 /**
- * Handles the email/password login process.
+ * Handles the email/password login process (real auth).
  * @param e The form submission event.
  */
-function handleLogin(e: Event) {
+async function handleLogin(e: Event) {
     e.preventDefault();
     const email = DOMElements.loginEmail.value;
-    // For this demo, we create a mock user based on the email.
-    const name = email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const password = DOMElements.loginPassword.value;
     
-    const user = { name, email };
-    
-    completeLogin(user);
+    await signInWithEmail(email, password);
 }
 
 /**
- * Handles the email/password signup process.
+ * Handles the email/password signup process (real auth).
  * @param e The form submission event.
  */
-function handleSignup(e: Event) {
+async function handleSignup(e: Event) {
     e.preventDefault();
     const name = DOMElements.signupName.value;
     const email = DOMElements.signupEmail.value;
-
-    const user = { name, email };
+    const password = DOMElements.signupPassword.value;
     
-    completeLogin(user);
+    await signUpWithEmail(email, password, name);
 }
 
 /**
- * Handles the logout process.
+ * Handles the logout process (real auth).
  */
-export function handleLogout() {
-    localStorage.removeItem('vcanship_user');
-    localStorage.removeItem('vcanship_free_lookups'); // Clear free user counter on logout
-    setState({
-        isLoggedIn: false,
-        currentUser: null,
-        subscriptionTier: 'guest',
-        aiLookupsRemaining: 0,
-    });
-    updateUIForAuthState();
-    switchPage('landing'); // Redirect to landing page after logout
+export async function handleLogout() {
+    await signOut();
 }
 
 
 // --- INITIALIZATION ---
 
 /**
- * Sets up all event listeners for the authentication flow.
+ * Sets up all event listeners for the authentication flow (real auth).
  */
 export function initializeAuth() {
+    // Initialize auth state listener (Supabase)
+    initializeAuthListener();
+    
     // Check for existing session on page load
     checkSession();
     

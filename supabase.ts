@@ -1,15 +1,21 @@
 // supabase.ts
-import { createClient } from '@supabase/supabase-js';
+import { createClient, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
-import { State } from './state';
+import { State, setState } from './state';
 
 // --- Supabase Client Initialization ---
 
 const SUPABASE_URL = 'https://nlzkghwkdwzjpzdmjuil.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5semtnaHdrZHd6anB6ZG1qdWlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3OTYxNzcsImV4cCI6MjA3MDM3MjE3N30.umFzkfIP3Ws5hmXxoEdxrU0V6XyyNZUtapr7411C9N8';
 
-// Initialize the client. The export allows us to use this client across the app.
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize the client with auth configuration
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+    }
+});
 
 
 // --- Database Interaction Functions ---

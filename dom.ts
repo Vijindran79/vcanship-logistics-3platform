@@ -23,8 +23,10 @@ export const DOMElements = {
     get loginForm() { return document.getElementById('login-form') as HTMLFormElement; },
     get signupForm() { return document.getElementById('signup-form') as HTMLFormElement; },
     get loginEmail() { return document.getElementById('login-email') as HTMLInputElement; },
+    get loginPassword() { return document.getElementById('login-password') as HTMLInputElement; },
     get signupName() { return document.getElementById('signup-name') as HTMLInputElement; },
     get signupEmail() { return document.getElementById('signup-email') as HTMLInputElement; },
+    get signupPassword() { return document.getElementById('signup-password') as HTMLInputElement; },
     get googleLoginBtn() { return document.querySelector('.google-login-btn') as HTMLButtonElement; },
     get appleLoginBtn() { return document.querySelector('.apple-login-btn') as HTMLButtonElement; },
 
