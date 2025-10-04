@@ -81,6 +81,42 @@ function initializeSmartHeader() {
     window.addEventListener('scroll', onScroll, { passive: true });
 }
 
+// --- Mobile Sidebar Toggle ---
+function initializeMobileMenu() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.getElementById('app-sidebar');
+    const overlay = document.getElementById('mobile-sidebar-overlay');
+    
+    if (!mobileMenuBtn || !sidebar || !overlay) return;
+
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('mobile-active');
+        overlay.classList.toggle('active');
+    };
+
+    const closeSidebar = () => {
+        sidebar.classList.remove('mobile-active');
+        overlay.classList.remove('active');
+    };
+
+    // Toggle on hamburger button click
+    mobileMenuBtn.addEventListener('click', toggleSidebar);
+
+    // Close on overlay click
+    overlay.addEventListener('click', closeSidebar);
+
+    // Close sidebar when clicking any sidebar button
+    sidebar.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        if (target.classList.contains('sidebar-btn') || 
+            target.classList.contains('sidebar-btn-service') ||
+            target.closest('.sidebar-btn') ||
+            target.closest('.sidebar-btn-service')) {
+            closeSidebar();
+        }
+    });
+}
+
 // --- Landscape Mode Suggestion for Phones ---
 function initializeOrientationSuggestion() {
     // Detect if device is a phone (not tablet or desktop)
@@ -318,12 +354,22 @@ async function main() {
     initializeStaticPages();
     initializeAuth();
     initializePaymentPage();
+    
+    // Logout button handler
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleLogout();
+        });
+    }
     initializeLocaleSwitcher();
     initializeDashboard();
     initializeAccountPages();
     initializeChatbot();
     initializeSmartHeader(); // Auto-hide header on scroll down, show on scroll up
     initializeOrientationSuggestion(); // Suggest landscape mode for phones
+    initializeMobileMenu(); // Initialize mobile sidebar toggle
     
     // Initialize API usage tracking (async - only shows for Premium users)
     initializeAPIUsageTracking().catch(err => {

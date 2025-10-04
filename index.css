@@ -191,6 +191,28 @@ html[data-theme="dark"] header {
   border-color: var(--primary-orange);
 }
 
+.mobile-menu-toggle {
+  display: none; /* Hidden on desktop */
+}
+
+.mobile-sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mobile-sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
 .header-btn:hover, .locale-header-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.08);
@@ -946,36 +968,63 @@ html[dir="rtl"] footer .footer-contact i { margin-right: 0; margin-left: 0.5rem;
 
 /* Responsive adjustments */
 @media (max-width: 992px) {
+  .mobile-menu-toggle {
+    display: flex !important; /* Show hamburger on mobile */
+  }
+
   .main-container { 
-    flex-direction: column; 
+    flex-direction: row;
     padding: 1rem;
-    gap: 1rem;
+    gap: 0;
   }
+
   .sidebar { 
-    width: 100%; 
-    flex-direction: row; 
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    order: -1; /* Ensure sidebar appears first */
+    position: fixed;
+    top: 0;
+    left: -280px; /* Hidden off-screen */
+    width: 280px;
+    height: 100vh;
+    background: var(--background-color);
+    z-index: 999;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 1.5rem;
+    padding: 1rem;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    transition: left 0.3s ease;
+    overflow-y: auto;
   }
+
+  .sidebar.mobile-active {
+    left: 0; /* Slide in */
+  }
+
   .sidebar-section { 
-    border-bottom: none; 
-    flex-direction: row; 
-    flex-wrap: wrap;
-    padding-bottom: 0;
+    border-bottom: 3px solid var(--border-color);
+    flex-direction: column;
+    flex-wrap: nowrap;
+    padding-bottom: 1rem;
     gap: 0.5rem;
     width: 100%;
   }
+
+  .sidebar-section:last-child {
+    border-bottom: none;
+  }
+
   .sidebar-btn,
   .sidebar-btn-service {
-    font-size: 0.85rem;
-    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+    padding: 0.8rem 1rem;
+    text-align: left;
   }
+
   main { 
     grid-template-columns: 1fr;
     width: 100%;
-    margin-top: 1rem; /* Add space between sidebar and main content */
+    flex: 1;
   }
+
   .shipping-options, .additional-services, .two-column { grid-template-columns: 1fr; }
 }
 
